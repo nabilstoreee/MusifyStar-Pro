@@ -28,21 +28,18 @@
         isSending: false,
 
         // Verified Blue Checkmark + Admin Badge (Exclusively for jrnabil570@gmail.com)
+        // Format: Admin first, blue checkmark right beside it on the right (Admin ✅)
         getAdminBlueCheckmarkHTML() {
             var checkmarkSvg = `
-            <span class="inline-flex items-center shrink-0" style="transform: translateY(-0.5px);">
-                <svg style="width: 13px; height: 13px;" class="shrink-0 inline-block align-middle drop-shadow-sm" viewBox="0 0 24 24" fill="none">
-                    <circle cx="12" cy="12" r="10" fill="#0095F6"/>
-                    <path fill-rule="evenodd" clip-rule="evenodd" d="M16.707 8.293a1 1 0 0 1 0 1.414l-6 6a1 1 0 0 1-1.414 0l-3-3a1 1 0 1 1 1.414-1.414L10 13.586l5.293-5.293a1 1 0 0 1 1.414 0z" fill="#FFFFFF"/>
-                </svg>
-            </span>`;
+            <svg style="width: 12px; height: 12px;" class="shrink-0 inline-block align-middle ml-1" viewBox="0 0 24 24" fill="none">
+                <circle cx="12" cy="12" r="10" fill="#0095F6"/>
+                <path fill-rule="evenodd" clip-rule="evenodd" d="M16.707 8.293a1 1 0 0 1 0 1.414l-6 6a1 1 0 0 1-1.414 0l-3-3a1 1 0 1 1 1.414-1.414L10 13.586l5.293-5.293a1 1 0 0 1 1.414 0z" fill="#FFFFFF"/>
+            </svg>`;
 
             return `
-            <span class="inline-flex items-center gap-1 shrink-0 ml-1.5 align-middle select-none" title="Admin Terverifikasi Resmi">
-                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-sky-500/20 border border-sky-400/40 text-sky-300 font-extrabold text-[10px] uppercase tracking-wider shadow-sm">
-                    <span>Admin</span>
-                    ${checkmarkSvg}
-                </span>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700/80 text-slate-200 text-[10px] font-semibold tracking-wide shadow-sm select-none" title="Admin Terverifikasi Resmi">
+                <span>Admin</span>
+                ${checkmarkSvg}
             </span>`;
         },
 
@@ -64,6 +61,7 @@
                     u.isAdmin = true;
                     u.isVerifiedAdmin = true;
                     u.badge = 'Admin';
+                    u.username = 'MusifyStar Official';
                     if (!u.email) u.email = 'jrnabil570@gmail.com';
                 } else {
                     u.isAdmin = false;
@@ -95,7 +93,7 @@
 
             var modal = document.createElement('div');
             modal.id = 'musifystar-global-chat-modal';
-            modal.className = 'fixed inset-0 z-[99999] flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-xl animate-fade-in select-none';
+            modal.className = 'fixed inset-0 z-[99999] flex items-center justify-center p-2 sm:p-4 bg-black/85 backdrop-blur-md animate-fade-in select-none';
 
             // Anti-DevTools & Anti-Inspection Protections on Chat Interface
             modal.oncontextmenu = function(e) {
@@ -125,51 +123,47 @@
             var isMasterAdmin = (u.email || u.rawEmail || '').toLowerCase().trim() === 'jrnabil570@gmail.com';
 
             modal.innerHTML = `
-            <div class="relative w-full max-w-xl h-[92vh] sm:h-[86vh] max-h-[780px] bg-[#090d14] border border-cyan-500/25 rounded-3xl flex flex-col shadow-[0_0_80px_rgba(6,182,212,0.2)] overflow-hidden">
-                <!-- Decorative Ambient Neon Glows -->
-                <div class="absolute -top-24 left-1/4 w-80 h-80 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none"></div>
-                <div class="absolute -bottom-24 right-1/4 w-80 h-80 bg-blue-600/15 rounded-full blur-3xl pointer-events-none"></div>
-
-                <!-- Chat Header (MusifyStar Glass Header) -->
-                <div class="relative z-10 px-4 sm:px-6 py-3.5 bg-[#0f1420]/90 border-b border-cyan-500/20 flex items-center justify-between shrink-0 backdrop-blur-xl shadow-md">
+            <div class="relative w-full max-w-xl h-[92vh] sm:h-[86vh] max-h-[760px] bg-[#0f1217] border border-slate-800/80 rounded-2xl sm:rounded-3xl flex flex-col shadow-2xl shadow-black/80 overflow-hidden">
+                <!-- Chat Header (Sleek Dark Obsidian Theme) -->
+                <div class="relative z-10 px-4 sm:px-6 py-3.5 bg-[#141720] border-b border-slate-800/80 flex items-center justify-between shrink-0 shadow-sm">
                     <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-cyan-400 to-blue-600 flex items-center justify-center text-black shadow-lg shadow-cyan-500/25 shrink-0">
-                            <i data-lucide="message-square" class="w-5 h-5 text-black"></i>
+                        <div class="w-10 h-10 rounded-xl bg-slate-800/80 border border-slate-700/60 flex items-center justify-center text-slate-300 shadow-inner shrink-0">
+                            <i data-lucide="message-square" class="w-5 h-5 text-slate-300"></i>
                         </div>
                         <div>
                             <div class="flex items-center gap-2">
-                                <h2 class="text-sm sm:text-base font-black text-white tracking-tight">Chat Global MusifyStar</h2>
-                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-500/30 text-cyan-300 font-mono text-[9px] font-bold">
-                                    <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
+                                <h2 class="text-sm sm:text-base font-bold text-slate-100 tracking-tight">Chat Global MusifyStar</h2>
+                                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-slate-300 font-mono text-[9px] font-semibold">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                                     <span>LIVE</span>
                                 </span>
                             </div>
-                            <p class="text-[10px] text-white/50 flex items-center gap-1.5 mt-0.5">
-                                <i data-lucide="shield-check" class="w-3 h-3 text-cyan-400"></i>
-                                <span>Neon PostgreSQL &bull; Database Utama & Terenkripsi</span>
+                            <p class="text-[10px] text-slate-400 flex items-center gap-1.5 mt-0.5">
+                                <i data-lucide="shield-check" class="w-3 h-3 text-slate-400"></i>
+                                <span>Ruang Obrolan Komunitas Musik &bull; Terenkripsi</span>
                             </p>
                         </div>
                     </div>
                     <div class="flex items-center gap-1.5">
-                        <button onclick="GlobalChat.fetchMessages(false)" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/15 active:scale-95 flex items-center justify-center text-white/70 hover:text-white transition-all cursor-pointer" title="Segarkan Chat">
+                        <button onclick="GlobalChat.fetchMessages(false)" class="w-8 h-8 rounded-xl bg-slate-800/60 hover:bg-slate-700/80 border border-slate-700/50 active:scale-95 flex items-center justify-center text-slate-300 hover:text-white transition-all cursor-pointer" title="Segarkan Chat">
                             <i data-lucide="refresh-cw" class="w-4 h-4"></i>
                         </button>
-                        <button onclick="GlobalChat.close()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-rose-500/20 active:scale-95 flex items-center justify-center text-white/70 hover:text-rose-400 transition-all cursor-pointer" title="Tutup Chat">
+                        <button onclick="GlobalChat.close()" class="w-8 h-8 rounded-xl bg-slate-800/60 hover:bg-rose-500/20 hover:border-rose-500/40 border border-slate-700/50 active:scale-95 flex items-center justify-center text-slate-300 hover:text-rose-400 transition-all cursor-pointer" title="Tutup Chat">
                             <i data-lucide="x" class="w-4 h-4"></i>
                         </button>
                     </div>
                 </div>
 
-                <!-- Chat Messages Stream -->
-                <div id="global-chat-stream" class="relative z-10 flex-1 overflow-y-auto p-4 sm:p-5 space-y-3 hide-scrollbar" style="background: radial-gradient(circle at 50% 0%, rgba(6,182,212,0.06), transparent 70%);">
-                    <div id="global-chat-loading" class="text-center py-20 text-white/40 space-y-2">
-                        <i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto text-cyan-400"></i>
-                        <p class="text-xs font-medium">Menghubungkan ke ruang obrolan PostgreSQL...</p>
+                <!-- Chat Messages Stream (Deep Dark Background, Eye-Friendly) -->
+                <div id="global-chat-stream" class="relative z-10 flex-1 overflow-y-auto p-4 sm:p-5 space-y-3 hide-scrollbar bg-[#0c0e14]">
+                    <div id="global-chat-loading" class="text-center py-20 text-slate-500 space-y-2">
+                        <i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto text-slate-400"></i>
+                        <p class="text-xs font-medium">Memuat pesan obrolan...</p>
                     </div>
                 </div>
 
-                <!-- Chat Input Bottom Bar (MusifyStar Glass Bar) -->
-                <div id="global-chat-bottom-bar" class="relative z-10 px-3.5 sm:px-5 py-3 bg-[#0b0f17]/95 border-t border-white/10 shrink-0 backdrop-blur-xl">
+                <!-- Chat Input Bottom Bar -->
+                <div id="global-chat-bottom-bar" class="relative z-10 px-3.5 sm:px-5 py-3 bg-[#141720] border-t border-slate-800/80 shrink-0">
                     ${GlobalChat.renderBottomBar(u, isMasterAdmin)}
                 </div>
             </div>`;
@@ -224,17 +218,17 @@
 
             var senderBadgeHTML = isMasterAdmin 
                 ? GlobalChat.getAdminBlueCheckmarkHTML() 
-                : `<span class="text-[9px] px-1.5 py-0.5 rounded-full bg-white/10 text-white/60 ml-1.5">Member</span>`;
+                : `<span class="text-[9px] px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-slate-400 ml-1">Member</span>`;
 
             return `
             <div class="space-y-1.5">
-                <div class="flex items-center justify-between text-[11px] text-white/50 px-1 select-none">
-                    <span class="flex items-center gap-1 truncate">
-                        <span>Mengirim sebagai:</span>
-                        <b class="${isMasterAdmin ? 'text-white font-black' : 'text-cyan-300 font-bold'} truncate">${GlobalChat.escapeHtml(username)}</b>
+                <div class="flex items-center justify-between text-[11px] text-slate-400 px-1 select-none">
+                    <span class="flex items-center gap-1.5 truncate">
+                        <span class="text-slate-400">Mengirim sebagai:</span>
+                        <b class="text-slate-200 font-semibold truncate">${GlobalChat.escapeHtml(username)}</b>
                         ${senderBadgeHTML}
                     </span>
-                    <span id="global-chat-char-count" class="font-mono text-[10px] text-white/40">0/500</span>
+                    <span id="global-chat-char-count" class="font-mono text-[10px] text-slate-500">0/500</span>
                 </div>
                 <form onsubmit="event.preventDefault(); GlobalChat.sendMessage();" class="flex items-center gap-2">
                     <div class="relative flex-1">
@@ -243,18 +237,18 @@
                             id="global-chat-input" 
                             maxlength="500" 
                             autocomplete="off"
-                            placeholder="Tulis pesan ke semua pengguna..." 
+                            placeholder="Kirim Pesan keKomunitas MusifyStar..." 
                             oninput="GlobalChat.updateCharCount(this)"
-                            class="w-full px-4 py-2.5 sm:py-3 rounded-2xl bg-white/[0.06] border border-white/15 focus:border-cyan-400 focus:bg-white/[0.1] text-white placeholder-white/35 text-xs sm:text-sm font-sans focus:outline-none focus:ring-1 focus:ring-cyan-400/50 transition-all shadow-inner"
+                            class="w-full px-4 py-2.5 sm:py-3 rounded-xl bg-[#1a1f29] border border-slate-700/80 focus:border-slate-500 text-slate-100 placeholder-slate-500 text-xs sm:text-sm font-sans focus:outline-none focus:ring-1 focus:ring-slate-500/20 transition-all shadow-inner"
                         />
                     </div>
                     <button 
                         type="submit" 
                         id="global-chat-send-btn" 
-                        class="w-11 h-11 rounded-2xl bg-gradient-to-r from-cyan-400 to-blue-600 hover:from-cyan-300 hover:to-blue-500 active:scale-95 text-black flex items-center justify-center shrink-0 shadow-lg shadow-cyan-500/25 transition-all cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
+                        class="w-11 h-11 rounded-xl bg-slate-700 hover:bg-slate-600 active:scale-95 text-white flex items-center justify-center shrink-0 shadow-md transition-all cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
                         title="Kirim pesan"
                     >
-                        <i data-lucide="send" class="w-4 h-4 sm:w-5 sm:h-5 text-black"></i>
+                        <i data-lucide="send" class="w-4 h-4 text-white"></i>
                     </button>
                 </form>
             </div>`;
@@ -351,7 +345,7 @@
 
             var dateDivider = `
             <div class="flex justify-center my-3 select-none">
-                <span class="px-3 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/25 text-[10px] text-cyan-300/80 font-mono tracking-wider uppercase">
+                <span class="px-3 py-1 rounded-full bg-slate-800/60 border border-slate-700/40 text-[10px] text-slate-400 font-sans tracking-wide">
                     Ruang Chat Global MusifyStar
                 </span>
             </div>`;
@@ -380,16 +374,16 @@
                 // Strictly true if email is jrnabil570@gmail.com, or user_id is u_1790196636099_622dc736, or flagged as verified admin
                 var isMsgAdmin = !!m.isVerifiedAdmin || !!m.isAdmin || (msgEmail === 'jrnabil570@gmail.com') || (msgUserId === 'u_1790196636099_622dc736') || (msgUserId === 'admin_1') || (m.badge === 'Admin' && (m.username === 'nabil' || m.username === 'MusifyStar Official' || msgUserId === 'u_1790196636099_622dc736'));
                 var displayUsername = isMsgAdmin ? 'MusifyStar Official' : (m.username || 'Musisi');
-                var avatarColor = m.avatarColor || 'from-cyan-500 to-blue-600';
+                var avatarColor = isMsgAdmin ? 'from-slate-700 to-slate-900 border border-slate-600/60' : (m.avatarColor || 'from-slate-700 to-slate-800');
                 var initial = isMsgAdmin ? 'M' : (displayUsername.charAt(0).toUpperCase());
                 var timeStr = GlobalChat.formatTime(m.createdAt);
 
-                // Admin Centang Biru or Custom Badge
+                // Admin Centang Biru Badge: Admin ✅
                 var badgeHtml = isMsgAdmin ? GlobalChat.getAdminBlueCheckmarkHTML() : '';
 
                 // Delete option: Master Admin can delete ANY message, or user can delete their own message
                 var deleteBtn = (isMasterAdmin || isMe) ? `
-                <button type="button" onclick="GlobalChat.deleteMessage(event, '${m.id}')" class="p-1 rounded-lg hover:bg-rose-500/25 text-white/50 hover:text-rose-400 active:scale-90 transition-all cursor-pointer inline-flex items-center justify-center shrink-0" title="Hapus pesan ini">
+                <button type="button" onclick="GlobalChat.deleteMessage(event, '${m.id}')" class="p-1 rounded-lg hover:bg-white/10 text-slate-400 hover:text-rose-400 active:scale-90 transition-all cursor-pointer inline-flex items-center justify-center shrink-0" title="Hapus pesan ini">
                     <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                 </button>` : '';
 
@@ -397,38 +391,32 @@
                 // 1. PESAN SAYA (AKUN INI SENDIRI: DI KANAN)
                 // ==========================================
                 if (isMe) {
-                    var statusIcon = m.isSending ? `
-                        <!-- Sending status -->
-                        <span class="inline-flex text-cyan-200/60" title="Mengirim...">
-                            <i data-lucide="clock" class="w-3 h-3 animate-spin"></i>
+                    var statusSending = m.isSending ? `
+                        <span class="inline-flex text-slate-400" title="Mengirim...">
+                            <i data-lucide="loader-2" class="w-3 h-3 animate-spin"></i>
                         </span>
-                    ` : `
-                        <!-- Verified in PostgreSQL -->
-                        <span class="inline-flex text-cyan-200" title="Tersimpan di Neon PostgreSQL">
-                            <i data-lucide="check-check" class="w-3.5 h-3.5"></i>
-                        </span>
-                    `;
+                    ` : '';
 
                     return `
-                    <div class="flex justify-end items-end w-full group my-1.5 pl-8 sm:pl-16">
-                        <!-- MusifyStar Outgoing Bubble (Right side, Cyan/Blue Gradient) -->
-                        <div class="relative max-w-[85%] sm:max-w-[75%] bg-gradient-to-r from-cyan-600 to-blue-600 border border-cyan-300/30 text-white rounded-2xl rounded-tr-xs px-4 py-2.5 shadow-lg shadow-cyan-950/40">
+                    <div class="flex justify-end items-end w-full group my-2 pl-8 sm:pl-16">
+                        <!-- Dark Obsidian Outgoing Bubble (Comfortable, eye-friendly, no bright colors) -->
+                        <div class="relative max-w-[85%] sm:max-w-[75%] bg-[#222834] border border-slate-700/70 text-slate-100 rounded-2xl px-4 py-2.5 shadow-md shadow-black/40">
                             <!-- Optional Admin Centang Biru Header if sender is Admin -->
                             ${isMsgAdmin ? `
-                            <div class="flex items-center justify-end gap-1 mb-1 select-none flex-wrap">
-                                <span class="text-xs font-bold text-sky-100 tracking-tight">${GlobalChat.escapeHtml(displayUsername)}</span>
+                            <div class="flex items-center justify-end gap-1.5 mb-1.5 select-none flex-wrap">
+                                <span class="text-xs font-semibold text-slate-200 tracking-tight">${GlobalChat.escapeHtml(displayUsername)}</span>
                                 ${badgeHtml}
                             </div>
                             ` : ''}
 
                             <!-- Message text -->
-                            <p class="text-[13px] sm:text-[14px] leading-relaxed select-text break-words whitespace-pre-wrap font-sans text-white font-medium">${GlobalChat.escapeHtml(m.message)}</p>
+                            <p class="text-[13px] sm:text-[14px] leading-relaxed select-text break-words whitespace-pre-wrap font-sans text-slate-100 font-normal">${GlobalChat.escapeHtml(m.message)}</p>
                             
-                            <!-- Meta Time & Verification Status -->
-                            <div class="flex items-center justify-end gap-1.5 mt-1 select-none">
+                            <!-- Meta Time & Delete Action -->
+                            <div class="flex items-center justify-end gap-2 mt-1 select-none">
                                 ${deleteBtn}
-                                <span class="text-[10px] text-cyan-100/70 font-mono">${timeStr}</span>
-                                ${statusIcon}
+                                <span class="text-[10px] text-slate-400 font-mono">${timeStr}</span>
+                                ${statusSending}
                             </div>
                         </div>
                     </div>`;
@@ -438,27 +426,27 @@
                 // 2. PESAN ORANG LAIN (AKUN LAIN: DI KIRI DENGAN AVATAR & NAMA)
                 // ==========================================
                 return `
-                <div class="flex justify-start items-start gap-2.5 w-full group my-1.5 pr-8 sm:pr-16">
+                <div class="flex justify-start items-start gap-2.5 w-full group my-2 pr-8 sm:pr-16">
                     <!-- Avatar Pengirim -->
-                    <div class="w-8 h-8 rounded-2xl bg-gradient-to-tr ${avatarColor} flex items-center justify-center text-white font-black text-xs shrink-0 shadow-md shadow-black/50 mt-0.5 select-none ring-1 ring-white/15">
+                    <div class="w-8 h-8 rounded-xl bg-gradient-to-tr ${avatarColor} flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-md shadow-black/40 mt-0.5 select-none ring-1 ring-white/10">
                         ${initial}
                     </div>
 
-                    <!-- MusifyStar Incoming Bubble (Left side, Dark Glassmorphism) -->
-                    <div class="relative max-w-[85%] sm:max-w-[75%] bg-[#131926]/90 border border-white/10 hover:border-white/15 text-white rounded-2xl rounded-tl-xs px-4 py-2.5 shadow-md shadow-black/50 backdrop-blur-md">
+                    <!-- Dark Obsidian Incoming Bubble -->
+                    <div class="relative max-w-[85%] sm:max-w-[75%] bg-[#161a22] border border-slate-800 text-slate-200 rounded-2xl px-4 py-2.5 shadow-md shadow-black/40">
                         <!-- Header Nama Pengirim & Admin Centang Biru -->
-                        <div class="flex items-center gap-1 mb-1 select-none flex-wrap">
-                            <span class="text-xs font-bold ${isMsgAdmin ? 'text-white' : 'text-cyan-300'} tracking-tight">${GlobalChat.escapeHtml(displayUsername)}</span>
+                        <div class="flex items-center gap-1.5 mb-1.5 select-none flex-wrap">
+                            <span class="text-xs font-semibold text-slate-200 tracking-tight">${GlobalChat.escapeHtml(displayUsername)}</span>
                             ${badgeHtml}
                         </div>
 
                         <!-- Isi Pesan -->
-                        <p class="text-[13px] sm:text-[14px] leading-relaxed select-text break-words whitespace-pre-wrap font-sans text-white/90">${GlobalChat.escapeHtml(m.message)}</p>
+                        <p class="text-[13px] sm:text-[14px] leading-relaxed select-text break-words whitespace-pre-wrap font-sans text-slate-200 font-normal">${GlobalChat.escapeHtml(m.message)}</p>
 
                         <!-- Meta Waktu & Delete Button -->
-                        <div class="flex items-center justify-end gap-1.5 mt-1 select-none">
+                        <div class="flex items-center justify-end gap-2 mt-1 select-none">
                             ${deleteBtn}
-                            <span class="text-[10px] text-white/40 font-mono">${timeStr}</span>
+                            <span class="text-[10px] text-slate-500 font-mono">${timeStr}</span>
                         </div>
                     </div>
                 </div>`;
@@ -504,7 +492,7 @@
             var btn = document.getElementById('global-chat-send-btn');
             if (btn) {
                 btn.disabled = true;
-                btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin text-black"></i>';
+                btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin text-white"></i>';
                 if (window.lucide) lucide.createIcons();
             }
 
@@ -533,7 +521,7 @@
                 badge: isMasterAdmin ? 'Admin' : 'Member',
                 isAdmin: isMasterAdmin,
                 isVerifiedAdmin: isMasterAdmin,
-                avatarColor: 'from-cyan-500 to-blue-600',
+                avatarColor: isMasterAdmin ? 'from-slate-700 to-slate-900 border border-slate-600/60' : 'from-slate-700 to-slate-800',
                 createdAt: new Date().toISOString(),
                 isSending: true
             };
@@ -599,7 +587,7 @@
             } finally {
                 if (btn) {
                     btn.disabled = false;
-                    btn.innerHTML = '<i data-lucide="send" class="w-4 h-4 sm:w-5 sm:h-5 text-black"></i>';
+                    btn.innerHTML = '<i data-lucide="send" class="w-4 h-4 sm:w-5 sm:h-5 text-white"></i>';
                     if (window.lucide) lucide.createIcons();
                 }
             }

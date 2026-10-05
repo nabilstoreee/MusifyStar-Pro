@@ -38,6 +38,7 @@ var Auth = {
                 try { Auth.currentUser = JSON.parse(savedUser); } catch(e) {}
             }
         }
+        Auth.initGoogleAuth();
         Auth.checkSession();
         Auth.startRealtimeBanMonitor();
 
@@ -359,10 +360,10 @@ var Auth = {
 
             <!-- Expanding Content (fades in on hover / open) -->
             <div class="neon-body-content">
-                <form onsubmit="Auth.handleLogin(event, '${prefix}')" class="w-full space-y-3 pt-1">
+                <form onsubmit="Auth.handleLogin(event, '${prefix}')" class="w-full space-y-2.5 pt-1">
                     <!-- Username field -->
                     <div>
-                        <input type="text" id="${prefix}auth-login-username" required placeholder="Username" autocomplete="username" class="neon-v-input">
+                        <input type="text" id="${prefix}auth-login-username" required placeholder="Username atau Email" autocomplete="username" class="neon-v-input">
                     </div>
 
                     <!-- Password field with eye toggle -->
@@ -373,16 +374,35 @@ var Auth = {
                         </button>
                     </div>
 
-                    <!-- Sign in Button (Vivid Cyan pill button from video) -->
-                    <div class="pt-1">
+                    <!-- Sign in Button (Vivid Cyan pill button) -->
+                    <div class="pt-0.5">
                         <button type="submit" id="${prefix}auth-login-btn" class="neon-v-btn">
                             <span>LOGIN AKUN</span>
                         </button>
                     </div>
 
+                    <!-- Divider OR -->
+                    <div class="relative flex items-center justify-center py-0.5 select-none">
+                        <div class="border-t border-white/10 w-full"></div>
+                        <span class="bg-[#141720] px-2 text-[9px] text-white/40 uppercase tracking-wider font-mono">atau</span>
+                    </div>
+
+                    <!-- Google Sign-In Button (Official standard design) -->
+                    <div>
+                        <button type="button" onclick="Auth.handleGoogleLogin('${prefix}')" id="${prefix}auth-google-btn" class="w-full flex items-center justify-center gap-2.5 py-2 px-3 rounded-xl bg-white hover:bg-slate-100 text-slate-800 font-bold text-xs transition-all active:scale-[0.98] shadow-md border border-slate-200 cursor-pointer" title="Masuk cepat dengan Akun Google Anda">
+                            <svg class="w-4 h-4 shrink-0" viewBox="0 0 48 48">
+                                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+                                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+                                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+                                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+                            </svg>
+                            <span>Lanjutkan dengan Google</span>
+                        </button>
+                    </div>
+
                     <!-- Footer Links: Forgot Password & Sign up -->
-                    <div class="flex items-center justify-between text-xs px-1 pt-1 select-none">
-                        <span class="text-white/60 hover:text-white hover:underline cursor-pointer transition">belum ada aku?</span>
+                    <div class="flex items-center justify-between text-xs px-1 pt-0.5 select-none">
+                        <span class="text-white/60 hover:text-white hover:underline cursor-pointer transition">belum ada akun?</span>
                         <button type="button" onclick="Auth.setMode('register', '${prefix}')" class="text-[#ff10de] hover:text-[#ff3aeb] font-bold cursor-pointer transition">
                             daftar disini
                         </button>
@@ -405,7 +425,7 @@ var Auth = {
 
             <!-- Expanding Content (fades in on hover / open) -->
             <div class="neon-body-content">
-                <form onsubmit="Auth.handleRegister(event, '${prefix}')" class="w-full space-y-3 pt-1">
+                <form onsubmit="Auth.handleRegister(event, '${prefix}')" class="w-full space-y-2.5 pt-1">
                     <!-- Username field -->
                     <div>
                         <input type="text" id="${prefix}auth-reg-username" required placeholder="Username" autocomplete="username" class="neon-v-input">
@@ -425,14 +445,33 @@ var Auth = {
                     </div>
 
                     <!-- Sign up Button (Vivid Magenta pill button) -->
-                    <div class="pt-1">
+                    <div class="pt-0.5">
                         <button type="submit" id="${prefix}auth-reg-btn" class="neon-v-btn neon-v-btn-reg">
                             <span>DAFTARKAN AKUN</span>
                         </button>
                     </div>
 
+                    <!-- Divider OR -->
+                    <div class="relative flex items-center justify-center py-0.5 select-none">
+                        <div class="border-t border-white/10 w-full"></div>
+                        <span class="bg-[#141720] px-2 text-[9px] text-white/40 uppercase tracking-wider font-mono">atau</span>
+                    </div>
+
+                    <!-- Google Sign-In Button (Official standard design) -->
+                    <div>
+                        <button type="button" onclick="Auth.handleGoogleLogin('${prefix}')" id="${prefix}auth-google-reg-btn" class="w-full flex items-center justify-center gap-2.5 py-2 px-3 rounded-xl bg-white hover:bg-slate-100 text-slate-800 font-bold text-xs transition-all active:scale-[0.98] shadow-md border border-slate-200 cursor-pointer" title="Daftar cepat dengan Akun Google Anda">
+                            <svg class="w-4 h-4 shrink-0" viewBox="0 0 48 48">
+                                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+                                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+                                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+                                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+                            </svg>
+                            <span>Daftar dengan Google</span>
+                        </button>
+                    </div>
+
                     <!-- Footer Links: Back to Sign in -->
-                    <div class="flex items-center justify-between text-xs px-1 pt-1 select-none">
+                    <div class="flex items-center justify-between text-xs px-1 pt-0.5 select-none">
                         <span class="text-white/60">Sudah punya akun?</span>
                         <button type="button" onclick="Auth.setMode('login', '${prefix}')" class="text-[#35eaff] hover:text-[#56efff] font-bold cursor-pointer transition">
                             login disini
@@ -1403,6 +1442,165 @@ var Auth = {
             if (btn) {
                 btn.disabled = false;
                 btn.innerHTML = '<span>Sign up</span>';
+                if (window.lucide && typeof window.lucide.createIcons === 'function') try{ window.lucide.createIcons(); }catch(err){}
+            }
+        }
+    },
+
+    initGoogleAuth() {
+        if (typeof firebase !== 'undefined' && firebase.auth && !Auth.firebaseInitialized) {
+            try {
+                var config = {
+                    apiKey: "AIzaSyCQdT8NJQPDxuatW7OZXiJz_qwwSPrr19E",
+                    authDomain: "gen-lang-client-0523314981.firebaseapp.com",
+                    projectId: "gen-lang-client-0523314981",
+                    storageBucket: "gen-lang-client-0523314981.firebasestorage.app",
+                    messagingSenderId: "82338615901",
+                    appId: "1:82338615901:web:bc5eca9f4b9df83faa73b4"
+                };
+                if (!firebase.apps || !firebase.apps.length) {
+                    firebase.initializeApp(config);
+                }
+                Auth.firebaseInitialized = true;
+            } catch(e) {
+                console.warn('Firebase init error:', e);
+            }
+        }
+    },
+
+    async handleGoogleLogin(prefix) {
+        prefix = prefix || 'header-';
+        var btn = gid(prefix + 'auth-google-btn') || gid(prefix + 'auth-google-reg-btn');
+        var oldHtml = btn ? btn.innerHTML : '';
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin text-slate-800"></i><span class="text-slate-800 font-bold">Menghubungkan ke Google...</span>';
+            if (window.lucide && typeof window.lucide.createIcons === 'function') try{ window.lucide.createIcons(); }catch(e){}
+        }
+
+        try {
+            var googleUser = null;
+
+            // 1. Direct Google Identity Services (GIS) - Displays official "MusifyStar" branding
+            if (typeof google !== 'undefined' && google.accounts && google.accounts.oauth2) {
+                try {
+                    googleUser = await new Promise(function(resolve, reject) {
+                        var isResolved = false;
+                        var tokenClient = google.accounts.oauth2.initTokenClient({
+                            client_id: '82338615901-vejnqbindf7kni8fug8h69vkq883drj8.apps.googleusercontent.com',
+                            scope: 'email profile openid',
+                            callback: async function(tokenResponse) {
+                                if (tokenResponse && tokenResponse.access_token) {
+                                    isResolved = true;
+                                    try {
+                                        var infoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                                            headers: { Authorization: 'Bearer ' + tokenResponse.access_token }
+                                        });
+                                        var info = await infoRes.json();
+                                        resolve({
+                                            email: info.email,
+                                            name: info.name,
+                                            photoUrl: info.picture,
+                                            googleId: info.sub,
+                                            accessToken: tokenResponse.access_token
+                                        });
+                                    } catch(fetchErr) {
+                                        reject(fetchErr);
+                                    }
+                                } else if (tokenResponse && tokenResponse.error) {
+                                    isResolved = true;
+                                    if (tokenResponse.error === 'popup_closed_by_user') {
+                                        resolve(null);
+                                    } else {
+                                        reject(new Error(tokenResponse.error));
+                                    }
+                                }
+                            },
+                            error_callback: function(err) {
+                                isResolved = true;
+                                reject(err);
+                            }
+                        });
+                        tokenClient.requestAccessToken({ prompt: 'select_account' });
+                    });
+                } catch(gisErr) {
+                    console.warn('GIS Token client fallback to Firebase:', gisErr.message);
+                }
+            }
+
+            // 2. Firebase Auth popup fallback
+            if (!googleUser && typeof firebase !== 'undefined' && firebase.auth) {
+                try {
+                    Auth.initGoogleAuth();
+                    var provider = new firebase.auth.GoogleAuthProvider();
+                    provider.addScope('email');
+                    provider.addScope('profile');
+                    var result = await firebase.auth().signInWithPopup(provider);
+                    if (result && result.user) {
+                        var idToken = await result.user.getIdToken();
+                        googleUser = {
+                            email: result.user.email,
+                            name: result.user.displayName,
+                            photoUrl: result.user.photoURL,
+                            googleId: result.user.uid,
+                            idToken: idToken
+                        };
+                    }
+                } catch(fbErr) {
+                    console.warn('Firebase Auth popup error:', fbErr.message);
+                    if (fbErr.code === 'auth/popup-closed-by-user' || fbErr.code === 'auth/cancelled-popup-request') {
+                        if (btn) { btn.disabled = false; btn.innerHTML = oldHtml; }
+                        return;
+                    }
+                }
+            }
+
+            if (!googleUser) {
+                if (btn) { btn.disabled = false; btn.innerHTML = oldHtml; }
+                return;
+            }
+
+            if (!googleUser.email) {
+                throw new Error('Gagal mengambil informasi akun Google.');
+            }
+
+            // Send Google user details to backend to issue MusifyStar token
+            var res = await fetch('/api/user-auth?action=google_login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(googleUser)
+            });
+
+            var data = await res.json();
+            if (data && (data.banned || (data.ban && data.ban.isBanned))) {
+                gid('header-auth-dropdown-wrapper')?.remove();
+                Auth.showBanModal(data.ban);
+            } else if (data && data.status && data.token) {
+                try { localStorage.removeItem('musifystar_active_ban'); } catch(e) {}
+                Auth.token = data.token;
+                Auth.currentUser = data.user;
+                localStorage.setItem('musifystar_auth_token', data.token);
+                localStorage.setItem('musifystar_auth_user', JSON.stringify(data.user));
+                sessionStorage.removeItem('musifystar_auth_token');
+                sessionStorage.removeItem('musifystar_auth_user');
+
+                showToast('Selamat datang, ' + data.user.username + '! (Login Google)');
+                gid('header-auth-dropdown-wrapper')?.remove();
+                Auth.updateHeaderUI();
+
+                if (data.ban && (data.ban.isBanned || data.ban.isWarning)) {
+                    Auth.showBanModal(data.ban);
+                }
+            } else {
+                showToast(data?.message || 'Login dengan Google gagal');
+            }
+        } catch(err) {
+            console.error('Google login error:', err);
+            showToast(err.message || 'Terjadi kesalahan saat login Google');
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = oldHtml;
                 if (window.lucide && typeof window.lucide.createIcons === 'function') try{ window.lucide.createIcons(); }catch(err){}
             }
         }

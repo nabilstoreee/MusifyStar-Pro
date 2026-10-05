@@ -131,6 +131,10 @@
     </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest" onload="if(window.lucide && typeof window.lucide.createIcons === 'function') try{ window.lucide.createIcons(); } catch(e){}"></script>
+    <!-- Google Identity Services & Firebase Auth Client SDKs -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
     <style>
         * { -webkit-tap-highlight-color: transparent; }
         
@@ -261,8 +265,8 @@
         /* The Expanding Box Container */
         .neon-box-card {
             position: relative;
-            width: 320px;
-            max-width: 90vw;
+            width: 330px;
+            max-width: 92vw;
             height: 60px;
             background: #181b22;
             border-radius: 22px;
@@ -280,7 +284,7 @@
         .neon-box-card:hover,
         .neon-box-card.expanded,
         .neon-box-card:focus-within {
-            height: 275px;
+            height: 345px;
             cursor: default;
             box-shadow: 0 20px 45px rgba(0, 0, 0, 0.95);
         }
@@ -289,7 +293,7 @@
         .neon-box-card.mode-register:hover,
         .neon-box-card.mode-register.expanded,
         .neon-box-card.mode-register:focus-within {
-            height: 335px;
+            height: 405px;
         }
 
         /* 4-segment conic gradient on rotating square (Transcribed exactly from video) */

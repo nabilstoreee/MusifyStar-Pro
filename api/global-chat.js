@@ -217,7 +217,7 @@ module.exports = async function (req, res) {
                         const isFoundAdmin = (foundUser.email || foundUser.rawEmail || '').toLowerCase().trim() === 'jrnabil570@gmail.com' || String(foundUser.id) === 'u_1790196636099_622dc736';
                         currentUser = {
                             id: String(foundUser.id || effectiveUid),
-                            username: foundUser.username || effectiveUsername || 'Musisi',
+                            username: isFoundAdmin ? 'MusifyStar Official' : (foundUser.username || effectiveUsername || 'Musisi'),
                             email: foundUser.email || foundUser.rawEmail || headerEmail || '',
                             rawEmail: foundUser.rawEmail || foundUser.email || headerEmail || '',
                             isAdmin: isFoundAdmin,
@@ -227,7 +227,7 @@ module.exports = async function (req, res) {
                         const isGuestAdmin = (headerEmail === 'jrnabil570@gmail.com' || effectiveUid === 'u_1790196636099_622dc736');
                         currentUser = {
                             id: String(effectiveUid || 'usr_' + Date.now()),
-                            username: effectiveUsername || (isGuestAdmin ? 'nabil' : 'Musisi'),
+                            username: isGuestAdmin ? 'MusifyStar Official' : (effectiveUsername || 'Musisi'),
                             email: headerEmail || (isGuestAdmin ? 'jrnabil570@gmail.com' : ''),
                             rawEmail: headerEmail || (isGuestAdmin ? 'jrnabil570@gmail.com' : ''),
                             isAdmin: isGuestAdmin,
@@ -241,7 +241,7 @@ module.exports = async function (req, res) {
             if (!currentUser && (adminAuth.isValidToken(rawToken) || adminAuth.isValidToken(adminToken) || (headerEmail === 'jrnabil570@gmail.com' && (rawToken || adminToken)))) {
                 currentUser = {
                     id: 'u_1790196636099_622dc736',
-                    username: headerUsername || 'nabil',
+                    username: 'MusifyStar Official',
                     email: 'jrnabil570@gmail.com',
                     rawEmail: 'jrnabil570@gmail.com',
                     isAdmin: true,
@@ -289,7 +289,7 @@ module.exports = async function (req, res) {
             const userId = String(currentUser.id || currentUser.userId || '');
 
             // Master Admin Verification
-            const isMasterAdmin = (email === 'jrnabil570@gmail.com' || userId === 'u_1790196636099_622dc736');
+            const isMasterAdmin = (email === 'jrnabil570@gmail.com' || userId === 'u_1790196636099_622dc736' || userId === 'admin_1');
             const badge = isMasterAdmin ? 'Admin' : 'Member';
             const displayUsername = isMasterAdmin ? 'MusifyStar Official' : username;
             const avatarColor = getAvatarColor(displayUsername);

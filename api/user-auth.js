@@ -1092,6 +1092,133 @@ module.exports = async (req, res) => {
             });
         }
 
+        // POST /api/user-auth?action=google_login
+        if (action === 'google_login') {
+            const email = String(body.email || '').trim().toLowerCase();
+            const name = String(body.name || '').trim();
+            const photoUrl = String(body.photoUrl || '').trim();
+            const googleId = String(body.googleId || '').trim();
+
+            if (!email || !email.includes('@')) {
+                return res.status(400).json({ status: false, message: 'Email akun Google tidak valid' });
+            }
+
+            // Find existing user by email
+            let user = db.users.find(u => {
+                if (u.rawEmail && u.rawEmail.toLowerCase() === email) return true;
+                if (u.email && u.email.toLowerCase() === email) return true;
+                if (u.email && u.email.toLowerCase() === maskEmail(email).toLowerCase()) return true;
+                return false;
+            });
+
+            const nowIso = new Date().toISOString();
+            const maskedClientIp = maskIp(clientIp);
+
+            if (user) {
+                // User already exists, update info if needed
+                if (!user.rawEmail) user.rawEmail = email;
+                if (photoUrl && (!user.avatar || user.avatar.includes('dicebear'))) {
+                    user.avatar = photoUrl;
+                }
+                if (googleId && !user.googleId) {
+                    user.googleId = googleId;
+                }
+                if (user.provider !== 'google') {
+                    user.googleLinked = true;
+                }
+            } else {
+                // Generate a clean username from Google name or email
+                let baseUsername = (name || email.split('@')[0])
+                    .replace(/[^a-zA-Z0-9_]/g, '')
+                    .trim()
+                    .slice(0, 20);
+                if (baseUsername.length < 3) baseUsername = 'user_' + Math.floor(1000 + Math.random() * 9000);
+
+                let uniqueUsername = baseUsername;
+                let counter = 1;
+                while (db.users.some(u => u.username.toLowerCase() === uniqueUsername.toLowerCase())) {
+                    uniqueUsername = `${baseUsername.slice(0, 15)}_${counter++}`;
+                }
+
+                // If email is jrnabil570@gmail.com, ensure proper role/username
+                const isMasterAdmin = (email === 'jrnabil570@gmail.com');
+                const finalUsername = isMasterAdmin ? 'MusifyStar Official' : uniqueUsername;
+                const userId = isMasterAdmin ? 'u_1790196636099_622dc736' : ('u_' + Date.now() + '_' + crypto.randomBytes(4).toString('hex'));
+
+                user = {
+                    id: userId,
+                    username: finalUsername,
+                    email: isMasterAdmin ? 'jrnabil570@gmail.com' : maskEmail(email),
+                    rawEmail: email,
+                    avatar: photoUrl || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(finalUsername)}`,
+                    provider: 'google',
+                    googleId: googleId || undefined,
+                    role: isMasterAdmin ? 'admin' : 'member',
+                    createdAt: nowIso
+                };
+
+                db.users.push(user);
+            }
+
+            // Check if user is BANNED
+            const banStatus = getUserBanStatus(user, banRegistry);
+            if (banStatus.isBanned) {
+                return res.json({
+                    status: false,
+                    banned: true,
+                    ban: banStatus,
+                    user: {
+                        id: user.id,
+                        username: user.username,
+                        email: user.rawEmail || user.email,
+                        rawEmail: user.rawEmail || user.email
+                    },
+                    message: banStatus.banReason || 'Akun Anda sedang diblokir oleh administrator.'
+                });
+            }
+
+            // Record Login Log & IP
+            user.lastLoginAt = nowIso;
+            user.lastIp = maskedClientIp;
+            user.rawLastIp = clientIp;
+            user.loginLogs = user.loginLogs || [];
+            user.loginLogs.unshift({
+                ip: maskedClientIp,
+                rawIp: clientIp,
+                timestamp: nowIso,
+                provider: 'google',
+                userAgent: req.headers['user-agent'] || ''
+            });
+            if (user.loginLogs.length > 20) {
+                user.loginLogs = user.loginLogs.slice(0, 20);
+            }
+
+            const token = createSignedUserToken(user.id, user.username);
+            db.sessions = db.sessions || {};
+            db.sessions[token] = {
+                userId: user.id,
+                createdAt: Date.now(),
+                rememberMe: true,
+                provider: 'google'
+            };
+
+            await writeDbAsync(db);
+
+            return res.json({
+                status: true,
+                message: 'Login Google berhasil!',
+                token: token,
+                ban: banStatus,
+                user: {
+                    id: user.id,
+                    username: user.username,
+                    email: user.rawEmail || user.email,
+                    avatar: user.avatar,
+                    createdAt: user.createdAt
+                }
+            });
+        }
+
         // POST /api/user-auth?action=update_profile
         if (action === 'update_profile') {
             const token = (req.headers.authorization || '').replace(/^Bearer\s+/i, '') || req.body?.token;

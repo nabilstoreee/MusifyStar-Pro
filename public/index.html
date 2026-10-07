@@ -28,11 +28,33 @@
             } catch (e) {}
         })();
         if ('serviceWorker' in navigator) {
-            var refreshing = false;
-            navigator.serviceWorker.addEventListener('controllerchange', function() {
-                if (refreshing) return;
-                refreshing = true;
+            // Hindari double-reload: catat apakah halaman saat load sudah dikontrol Service Worker
+            var hadController = !!navigator.serviceWorker.controller;
+            window._isReloadingApp = false;
+
+            // Kunci anti-double-reload beruntun (minimal jeda 5 detik antar reload)
+            window.reloadAppSafely = function(reason) {
+                if (window._isReloadingApp || window.musifyAuthInProgress) return;
+                try {
+                    var lastLock = sessionStorage.getItem('musify_reload_lock');
+                    if (lastLock && (Date.now() - parseInt(lastLock, 10)) < 5000) {
+                        return; // Blokir reload kedua jika baru saja reload dalam 5 detik
+                    }
+                    sessionStorage.setItem('musify_reload_lock', String(Date.now()));
+                } catch(e){}
+
+                window._isReloadingApp = true;
+                console.log('[PWA] Memuat ulang aplikasi 1x dengan aman. Alasan:', reason);
                 window.location.reload();
+            };
+
+            navigator.serviceWorker.addEventListener('controllerchange', function() {
+                // Jika halaman baru pertama kali diklaim oleh SW (bukan update), JANGAN reload
+                if (!hadController) {
+                    hadController = true;
+                    return;
+                }
+                window.reloadAppSafely('service-worker-controller-change');
             });
 
             window.addEventListener('load', function() {
@@ -57,11 +79,16 @@
             });
 
             // Universal PWA Version Watcher: Check every 30s & on focus
-            window.activeAppVersion = window.activeAppVersion || null;
+            try {
+                window.activeAppVersion = localStorage.getItem('musify_app_version') || null;
+            } catch(e) {
+                window.activeAppVersion = null;
+            }
+
             window.checkPwaVersionUpdate = async function() {
                 try {
                     // Do not interrupt if user is actively logging in or authenticating
-                    if (window.musifyAuthInProgress) return;
+                    if (window.musifyAuthInProgress || window._isReloadingApp) return;
 
                     var res = await fetch('/api/version?t=' + Date.now(), { cache: 'no-store' });
                     var data = await res.json();
@@ -69,9 +96,10 @@
 
                     if (!window.activeAppVersion) {
                         window.activeAppVersion = data.version;
-                        if (data.buildTimestamp) {
-                            try { localStorage.setItem('musify_last_reloaded_build', String(data.buildTimestamp)); } catch(e){}
-                        }
+                        try {
+                            localStorage.setItem('musify_app_version', data.version);
+                            if (data.buildTimestamp) localStorage.setItem('musify_last_reloaded_build', String(data.buildTimestamp));
+                        } catch(e){}
                         return;
                     }
 
@@ -83,22 +111,25 @@
                     var shouldReload = isNewerVersion || (data.forceReload && isNewerBuild);
 
                     if (shouldReload) {
-                        if (window.musifyAuthInProgress) return;
+                        if (window.musifyAuthInProgress || window._isReloadingApp) return;
                         console.log('[PWA UPDATE] Newer version/build detected:', data.version, 'Current:', window.activeAppVersion);
+                        
                         window.activeAppVersion = data.version;
-                        if (data.buildTimestamp) {
-                            try { localStorage.setItem('musify_last_reloaded_build', String(data.buildTimestamp)); } catch(e){}
-                        }
+                        try {
+                            localStorage.setItem('musify_app_version', data.version);
+                            if (data.buildTimestamp) localStorage.setItem('musify_last_reloaded_build', String(data.buildTimestamp));
+                        } catch(e){}
+
                         if (window.musifySwRegistration) {
                             try { window.musifySwRegistration.update(); } catch(e){}
                         }
                         if (typeof showToast === 'function') {
                             showToast('🚀 Memperbarui MusifyStar ke ' + data.version + '...');
                         }
+
+                        // Delay sedikit agar pengguna sempat melihat notifikasi update, lalu reload 1x
                         setTimeout(function() {
-                            if (!window.musifyAuthInProgress) {
-                                window.location.reload();
-                            }
+                            window.reloadAppSafely('pwa-version-bump');
                         }, 1200);
                     }
                 } catch(e) {}

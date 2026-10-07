@@ -60,18 +60,35 @@
             window.activeAppVersion = window.activeAppVersion || null;
             window.checkPwaVersionUpdate = async function() {
                 try {
+                    // Do not interrupt if user is actively logging in or authenticating
+                    if (window.musifyAuthInProgress) return;
+
                     var res = await fetch('/api/version?t=' + Date.now(), { cache: 'no-store' });
                     var data = await res.json();
                     if (!data || !data.version) return;
 
                     if (!window.activeAppVersion) {
                         window.activeAppVersion = data.version;
+                        if (data.buildTimestamp) {
+                            try { localStorage.setItem('musify_last_reloaded_build', String(data.buildTimestamp)); } catch(e){}
+                        }
                         return;
                     }
 
-                    if (window.activeAppVersion !== data.version || data.forceReload) {
-                        console.log('[PWA UPDATE] Newer version detected:', data.version, 'Current:', window.activeAppVersion);
+                    var lastReloadedBuild = '';
+                    try { lastReloadedBuild = localStorage.getItem('musify_last_reloaded_build') || ''; } catch(e){}
+
+                    var isNewerVersion = (window.activeAppVersion !== data.version);
+                    var isNewerBuild = data.buildTimestamp && (lastReloadedBuild !== String(data.buildTimestamp));
+                    var shouldReload = isNewerVersion || (data.forceReload && isNewerBuild);
+
+                    if (shouldReload) {
+                        if (window.musifyAuthInProgress) return;
+                        console.log('[PWA UPDATE] Newer version/build detected:', data.version, 'Current:', window.activeAppVersion);
                         window.activeAppVersion = data.version;
+                        if (data.buildTimestamp) {
+                            try { localStorage.setItem('musify_last_reloaded_build', String(data.buildTimestamp)); } catch(e){}
+                        }
                         if (window.musifySwRegistration) {
                             try { window.musifySwRegistration.update(); } catch(e){}
                         }
@@ -79,7 +96,9 @@
                             showToast('🚀 Memperbarui MusifyStar ke ' + data.version + '...');
                         }
                         setTimeout(function() {
-                            window.location.reload();
+                            if (!window.musifyAuthInProgress) {
+                                window.location.reload();
+                            }
                         }, 1200);
                     }
                 } catch(e) {}

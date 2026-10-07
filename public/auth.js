@@ -1470,6 +1470,7 @@ var Auth = {
 
     async handleGoogleLogin(prefix) {
         prefix = prefix || 'header-';
+        window.musifyAuthInProgress = true;
         var btn = gid(prefix + 'auth-google-btn') || gid(prefix + 'auth-google-reg-btn');
         var oldHtml = btn ? btn.innerHTML : '';
         if (btn) {
@@ -1598,6 +1599,7 @@ var Auth = {
             console.error('Google login error:', err);
             showToast(err.message || 'Terjadi kesalahan saat login Google');
         } finally {
+            window.musifyAuthInProgress = false;
             if (btn) {
                 btn.disabled = false;
                 btn.innerHTML = oldHtml;

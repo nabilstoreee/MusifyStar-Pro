@@ -280,7 +280,7 @@ var Auth = {
                 <div onclick="gid('header-auth-dropdown-wrapper')?.remove()" class="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity"></div>
 
                 <!-- Floating Close Button at top right of screen -->
-                <button onclick="gid('header-auth-dropdown-wrapper')?.remove()" class="fixed top-5 right-5 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 flex items-center justify-center text-white/70 hover:text-white transition active:scale-95 cursor-pointer z-40" title="Tutup">
+                <button onclick="gid('header-auth-dropdown-wrapper')?.remove()" class="fixed top-5 right-5 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 flex items-center justify-center text-white/70 hover:text-white transition active:scale-95 cursor-pointer z-40" title="">
                     <i data-lucide="x" class="w-4 h-4"></i>
                 </button>
 
@@ -563,6 +563,22 @@ var Auth = {
         </span>`;
     },
 
+    toggleVipMembershipPanel() {
+        var content = gid('vip-membership-content');
+        var chevron = gid('vip-panel-chevron');
+        var toggleText = gid('vip-panel-toggle-text');
+        if (!content) return;
+        if (content.classList.contains('hidden')) {
+            content.classList.remove('hidden');
+            if (chevron) chevron.style.transform = 'rotate(180deg)';
+            if (toggleText) toggleText.innerText = '';
+        } else {
+            content.classList.add('hidden');
+            if (chevron) chevron.style.transform = 'rotate(0deg)';
+            if (toggleText) toggleText.innerText = 'Buka';
+        }
+    },
+
     toggleBadgeSettingsPanel() {
         var content = gid('badge-settings-content');
         var chevron = gid('badge-panel-chevron');
@@ -808,7 +824,7 @@ var Auth = {
         if (rawTier === '1month') vipTierDisplay = 'Paket 1 Bulan (Platinum & Master)';
         else if (rawTier === '2months') vipTierDisplay = 'Paket 2 Bulan (+ Legend)';
         else if (rawTier === '5months') vipTierDisplay = 'Paket 5 Bulan (+ Immortal)';
-        else if (rawTier === 'permanent' || rawTier === 'lifetime' || rawTier === 'sultan' || isMasterAdmin) vipTierDisplay = 'Paket Sultan (Permanen)';
+        else if (rawTier === 'permanent' || rawTier === 'lifetime' || rawTier === 'sultan' || isMasterAdmin) vipTierDisplay = 'Paket Permanen';
         else if (isUserVip) vipTierDisplay = 'Paket VIP Aktif';
 
         var borderMap = {
@@ -922,95 +938,105 @@ var Auth = {
                     </button>
                 </div>
 
-                <!-- CARD VIP MEMBERSHIP & WAKTU MUNDUR EXPIRED -->
-                <div class="p-3 sm:p-3.5 rounded-2xl ${isUserVip ? 'bg-gradient-to-b from-[#1c1810]/95 via-[#13141d]/95 to-[#0e1017]/95 border-amber-400/35 shadow-[0_0_15px_rgba(245,158,11,0.1)]' : (isVipExpired ? 'bg-gradient-to-b from-rose-950/30 via-[#13141d]/95 to-[#0e1017]/95 border-rose-500/35' : 'bg-[#12141c]/90 border-white/10')} border backdrop-blur-xl shadow-lg space-y-2.5">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2">
+                <!-- CARD VIP MEMBERSHIP & WAKTU MUNDUR EXPIRED (Accordion Buka/Tutup) -->
+                <div class="rounded-2xl ${isUserVip ? 'bg-gradient-to-b from-[#1c1810]/95 via-[#13141d]/95 to-[#0e1017]/95 border-amber-400/35 shadow-[0_0_15px_rgba(245,158,11,0.1)]' : (isVipExpired ? 'bg-gradient-to-b from-rose-950/30 via-[#13141d]/95 to-[#0e1017]/95 border-rose-500/35' : 'bg-[#12141c]/90 border-white/10')} border backdrop-blur-xl shadow-lg overflow-hidden transition-all">
+                    <!-- Accordion Toggle Header -->
+                    <button type="button" onclick="Auth.toggleVipMembershipPanel()" class="w-full p-3 sm:p-3.5 flex items-center justify-between text-left cursor-pointer hover:bg-white/5 transition-all select-none active:scale-[0.99]">
+                        <div class="flex items-center gap-2 min-w-0 flex-1 pr-2">
                             <div class="w-6 h-6 rounded-lg ${isUserVip ? 'bg-gradient-to-tr from-amber-500 to-yellow-400 text-black shadow-sm' : (isVipExpired ? 'bg-rose-500/20 text-rose-400 border border-rose-500/30' : 'bg-white/10 text-white/60')} flex items-center justify-center font-bold shrink-0">
                                 <i data-lucide="crown" class="w-3.5 h-3.5 ${isUserVip ? 'fill-black' : ''}"></i>
                             </div>
-                            <div>
-                                <h3 class="text-xs font-bold text-white tracking-wide leading-tight">Status Membership VIP</h3>
-                                <p class="text-[9.5px] text-white/50 leading-tight">${isUserVip ? 'Akses Fitur Premium & Border Aktif' : (isVipExpired ? 'Masa Berlangganan Telah Habis' : 'Akun Standar Gratis')}</p>
+                            <div class="min-w-0">
+                                <h3 class="text-xs font-bold text-white tracking-wide leading-tight truncate">Status Membership VIP</h3>
+                                <p class="text-[9.5px] text-white/50 leading-tight truncate mt-0.5">${isUserVip ? 'Akses Fitur Premium & Border Aktif' : (isVipExpired ? 'Masa Berlangganan Telah Habis' : 'Akun Standar Gratis')}</p>
                             </div>
                         </div>
-                        <span id="modal-vip-status-badge" class="text-[9px] font-bold px-2 py-0.5 rounded-full ${isUserVip ? 'bg-gradient-to-r from-amber-400 to-yellow-500 text-black shadow-sm' : (isVipExpired ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' : 'bg-white/10 text-white/50')} font-mono">
-                            ${isUserVip ? (isMasterAdmin ? 'OFFICIAL ADMIN' : 'VIP AKTIF') : (isVipExpired ? 'KEDALUWARSA' : 'NON-VIP')}
-                        </span>
-                    </div>
-
-                    ${isUserVip ? `
-                    <!-- Detail Langganan & Live Waktu Mundur -->
-                    <div class="p-2.5 rounded-xl bg-black/50 border border-amber-400/20 space-y-2">
-                        <div class="flex items-center justify-between text-[10px]">
-                            <span class="font-medium text-white/60 uppercase tracking-wider text-[9px]">Paket Langganan:</span>
-                            <span class="text-[10.5px] font-bold text-amber-300 bg-amber-400/15 border border-amber-400/30 px-2 py-0.5 rounded-md">
-                                ${vipTierDisplay}
+                        <div class="flex items-center gap-2 shrink-0">
+                            <span id="modal-vip-status-badge" class="text-[9px] font-bold px-2 py-0.5 rounded-full ${isUserVip ? 'bg-gradient-to-r from-amber-400 to-yellow-500 text-black shadow-sm' : (isVipExpired ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' : 'bg-white/10 text-white/50')} font-mono">
+                                ${isUserVip ? (isMasterAdmin ? 'OFFICIAL ADMIN' : 'VIP AKTIF') : (isVipExpired ? 'KEDALUWARSA' : 'NON-VIP')}
                             </span>
+                            <span id="vip-panel-toggle-text" class="text-[9px] font-extrabold text-amber-300 bg-amber-400/20 border border-amber-400/35 px-2 py-0.5 rounded-full shadow-sm"></span>
+                            <i id="vip-panel-chevron" data-lucide="chevron-down" class="w-4 h-4 text-amber-400 transition-transform duration-300"></i>
                         </div>
+                    </button>
 
-                        <!-- LIVE COUNTDOWN TIMER (WAKTU MUNDUR) -->
-                        <div class="p-2 rounded-lg bg-gradient-to-r from-amber-500/10 via-yellow-500/5 to-amber-500/10 border border-amber-400/30 text-center shadow-inner">
-                            <span class="text-[9px] font-bold text-amber-300/90 uppercase tracking-wider flex items-center justify-center gap-1">
-                                <i data-lucide="timer" class="w-3 h-3 text-amber-400 animate-pulse"></i> Sisa Masa Aktif VIP (Waktu Mundur)
-                            </span>
-                            <div id="modal-vip-live-countdown" class="font-mono text-xs sm:text-sm font-bold text-white tracking-wider my-0.5 drop-shadow-[0_0_8px_rgba(245,158,11,0.4)]">
-                                ${u.vipExpiresAt ? 'Menghitung sisa waktu...' : '<span class="text-amber-300 font-bold">Aktif Selamanya (Permanen)</span>'}
+                    <!-- Collapsible Panel Content -->
+                    <div id="vip-membership-content" class="hidden p-3 sm:p-3.5 pt-0.5 space-y-2.5 border-t border-white/10">
+                        ${isUserVip ? `
+                        <!-- Detail Langganan & Live Waktu Mundur -->
+                        <div class="p-2.5 rounded-xl bg-black/50 border border-amber-400/20 space-y-2">
+                            <div class="flex items-center justify-between text-[10px]">
+                                <span class="font-medium text-white/60 uppercase tracking-wider text-[9px]">Paket Langganan:</span>
+                                <span class="text-[10.5px] font-bold text-amber-300 bg-amber-400/15 border border-amber-400/30 px-2 py-0.5 rounded-md">
+                                    ${vipTierDisplay}
+                                </span>
                             </div>
-                            ${u.vipExpiresAt ? `
-                            <p class="text-[9px] text-white/45 font-mono">
-                                Berakhir pada: <span class="text-amber-300/80 font-medium">${new Date(u.vipExpiresAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })} ${new Date(u.vipExpiresAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB</span>
-                            </p>
-                            ` : `
-                            <p class="text-[9px] text-amber-400/70">Status Permanen: Tidak ada batasan tanggal kedaluwarsa.</p>
-                            `}
-                        </div>
 
-                        <!-- Border Aktif & Fitur Terbuka -->
-                        <div class="pt-1 border-t border-white/10 space-y-1.5">
-                            <div class="flex items-center justify-between text-[10.5px]">
-                                <span class="text-white/60 text-[10px]">Border Profil:</span>
-                                <div class="flex items-center gap-1.5">
-                                    <span class="font-bold text-amber-300 text-[10.5px]">${activeBorderName ? activeBorderName : 'Belum Dipasang'}</span>
-                                    <button type="button" onclick="Auth.openBorderPickerModal()" class="text-[9px] px-1.5 py-0.5 rounded-md bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 border border-amber-400/35 font-bold cursor-pointer transition-all">Ganti Border</button>
+                            <!-- LIVE COUNTDOWN TIMER (WAKTU MUNDUR) -->
+                            <div class="p-2 rounded-lg bg-gradient-to-r from-amber-500/10 via-yellow-500/5 to-amber-500/10 border border-amber-400/30 text-center shadow-inner">
+                                <span class="text-[9px] font-bold text-amber-300/90 uppercase tracking-wider flex items-center justify-center gap-1">
+                                    <i data-lucide="timer" class="w-3 h-3 text-amber-400 animate-pulse"></i> Sisa Masa Aktif VIP
+                                </span>
+                                <div id="modal-vip-live-countdown" class="font-mono text-xs sm:text-sm font-bold text-white tracking-wider my-0.5 drop-shadow-[0_0_8px_rgba(245,158,11,0.4)]">
+                                    ${u.vipExpiresAt ? 'Menghitung sisa waktu...' : '<span class="text-amber-300 font-bold">Status Vip : Permanen</span>'}
+                                </div>
+                                ${u.vipExpiresAt ? `
+                                <p class="text-[9px] text-white/45 font-mono">
+                                    Berakhir pada: <span class="text-amber-300/80 font-medium">${new Date(u.vipExpiresAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })} ${new Date(u.vipExpiresAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB</span>
+                                </p>
+                                ` : `
+                                <p class="text-[9px] text-amber-400/70">Status Permanen : Tidak ada batasan tanggal kedaluwarsa.</p>
+                                `}
+                            </div>
+
+                            <!-- Border Aktif & Fitur Terbuka -->
+                            <div class="pt-1 border-t border-white/10 space-y-1.5">
+                                <div class="flex items-center justify-between text-[10.5px]">
+                                    <span class="text-white/60 text-[10px]">Kentungan Member VIP</span>
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="font-bold text-amber-300 text-[10.5px]">${activeBorderName ? activeBorderName : 'Belum Dipasang'}</span>
+                                        <button type="button" onclick="Auth.openBorderPickerModal()" class="text-[9px] px-1.5 py-0.5 rounded-md bg-amber-400/20 hover:bg-amber-400/30 text-amber-300 border border-amber-400/35 font-bold cursor-pointer transition-all">Ganti Border</button>
+                                    </div>
+                                </div>
+                                <div class="flex flex-wrap gap-1 pt-0.5">
+                                    <span class="text-[8.5px] px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-emerald-400">Kualitas Audio Tinggi VIP✓</span>
+                                    <span class="text-[8.5px] px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-emerald-400">Layar Tetap Menyala VIP✓</span>
+                                    <span class="text-[8.5px] px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-emerald-400">Gestur Usap Layar VIP✓</span>
+                                    <span class="text-[8.5px] px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-emerald-400">Putar Latar Belakang VIP✓</span>
+                                    <span class="text-[8.5px] px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-emerald-400">Border keren Profile VIP✓</span>
+                                    <span class="text-[8.5px] px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-emerald-400">Avatar Profile VIP✓</span>
                                 </div>
                             </div>
-                            <div class="flex flex-wrap gap-1 pt-0.5">
-                                <span class="text-[8.5px] px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-emerald-400">✓ Kualitas Audio Tinggi</span>
-                                <span class="text-[8.5px] px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-emerald-400">✓ Layar Tetap Menyala</span>
-                                <span class="text-[8.5px] px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-emerald-400">✓ Gestur Usap Layar</span>
-                                <span class="text-[8.5px] px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-emerald-400">✓ Putar Latar Belakang</span>
-                            </div>
                         </div>
-                    </div>
 
-                    <!-- Tombol Perpanjang VIP -->
-                    <button type="button" onclick="if(typeof Profile !== 'undefined') Profile.openVipPackagesModal();" class="w-full py-2 px-2.5 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-500 hover:to-yellow-500 text-black font-extrabold text-[11px] flex items-center justify-center gap-1 active:scale-95 transition-all cursor-pointer shadow-sm">
-                        <i data-lucide="sparkles" class="w-3.5 h-3.5 fill-black"></i>
-                        <span>Perpanjang / Upgrade Paket VIP</span>
-                    </button>
-                    ` : (isVipExpired ? `
-                    <!-- Peringatan VIP Expired -->
-                    <div class="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/25 text-center space-y-1.5">
-                        <p class="text-[11px] font-bold text-rose-300 flex items-center justify-center gap-1">
-                            <i data-lucide="alert-circle" class="w-3.5 h-3.5 text-rose-400"></i> Masa aktif VIP Anda telah berakhir
-                        </p>
-                        <p class="text-[9.5px] text-white/50 leading-tight">Perpanjang sekarang untuk mengaktifkan kembali border profil eksklusif dan seluruh fitur pemutar premium.</p>
-                        <button type="button" onclick="if(typeof Profile !== 'undefined') Profile.openVipPackagesModal();" class="w-full py-1.5 px-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 text-white font-extrabold text-[11px] flex items-center justify-center gap-1 active:scale-95 transition-all cursor-pointer shadow-sm mt-0.5">
-                            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-                            <span>Beli & Aktifkan Kembali VIP</span>
-                        </button>
-                    </div>
-                    ` : `
-                    <!-- Non-VIP Call to Action -->
-                    <div class="p-2.5 rounded-xl bg-black/40 border border-white/10 space-y-2">
-                        <p class="text-[10px] text-white/70 leading-snug">Tingkatkan akun Anda ke VIP untuk membuka <strong>Border Profil Eksklusif</strong>, Kualitas Audio Tinggi, Layar Tetap Menyala, Gestur Usap, dan Putar Latar Belakang!</p>
+                        <!-- Tombol Perpanjang VIP -->
                         <button type="button" onclick="if(typeof Profile !== 'undefined') Profile.openVipPackagesModal();" class="w-full py-2 px-2.5 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-500 hover:to-yellow-500 text-black font-extrabold text-[11px] flex items-center justify-center gap-1 active:scale-95 transition-all cursor-pointer shadow-sm">
-                            <i data-lucide="crown" class="w-3.5 h-3.5 fill-black"></i>
-                            <span>Beli Paket VIP Sekarang</span>
+                            <i data-lucide="sparkles" class="w-3.5 h-3.5 fill-black"></i>
+                            <span>Perpanjang / Upgrade Paket VIP</span>
                         </button>
+                        ` : (isVipExpired ? `
+                        <!-- Peringatan VIP Expired -->
+                        <div class="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/25 text-center space-y-1.5">
+                            <p class="text-[11px] font-bold text-rose-300 flex items-center justify-center gap-1">
+                                <i data-lucide="alert-circle" class="w-3.5 h-3.5 text-rose-400"></i> Masa aktif VIP Anda telah berakhir
+                            </p>
+                            <p class="text-[9.5px] text-white/50 leading-tight">Perpanjang sekarang untuk mengaktifkan kembali border profil eksklusif dan seluruh fitur pemutar premium.</p>
+                            <button type="button" onclick="if(typeof Profile !== 'undefined') Profile.openVipPackagesModal();" class="w-full py-1.5 px-2.5 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 text-white font-extrabold text-[11px] flex items-center justify-center gap-1 active:scale-95 transition-all cursor-pointer shadow-sm mt-0.5">
+                                <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                                <span>Beli & Aktifkan Kembali VIP</span>
+                            </button>
+                        </div>
+                        ` : `
+                        <!-- Non-VIP Call to Action -->
+                        <div class="p-2.5 rounded-xl bg-black/40 border border-white/10 space-y-2">
+                            <p class="text-[10px] text-white/70 leading-snug">Tingkatkan akun Anda ke VIP untuk membuka <strong>Border Profil Eksklusif</strong>, Kualitas Audio Tinggi, Layar Tetap Menyala, Gestur Usap, dan Putar Latar Belakang!</p>
+                            <button type="button" onclick="if(typeof Profile !== 'undefined') Profile.openVipPackagesModal();" class="w-full py-2 px-2.5 rounded-xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-500 hover:to-yellow-500 text-black font-extrabold text-[11px] flex items-center justify-center gap-1 active:scale-95 transition-all cursor-pointer shadow-sm">
+                                <i data-lucide="crown" class="w-3.5 h-3.5 fill-black"></i>
+                                <span>Beli Paket VIP Sekarang</span>
+                            </button>
+                        </div>
+                        `)}
                     </div>
-                    `)}
                 </div>
 
                 <!-- CARD 2: RANK BADGE CUSTOMISATION (Accordion Buka/Tutup) -->

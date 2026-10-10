@@ -143,14 +143,14 @@ var Profile = {
                         </div>
                     </button>
 
-                    <!-- Tombol Kotak Masuk Pesan Admin (Direct User Messaging) -->
-                    <button onclick="Profile.openUserInboxModal()" class="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-blue-500/15 via-cyan-500/15 to-transparent hover:from-blue-500/25 hover:to-cyan-500/25 border border-blue-500/30 text-white font-semibold text-xs flex items-center justify-between group active:scale-95 transition-all shadow-md cursor-pointer" title="Kotak Masuk Pesan dari Admin">
+                    <!-- Tombol Hubungi Admin via WhatsApp -->
+                    <button onclick="Profile.openWhatsAppSupport()" class="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-500/15 via-teal-500/15 to-transparent hover:from-emerald-500/25 hover:to-teal-500/25 border border-emerald-500/30 text-white font-semibold text-xs flex items-center justify-between group active:scale-95 transition-all shadow-md cursor-pointer" title="Hubungi Admin via WhatsApp">
                         <span class="flex items-center gap-2">
-                            <i data-lucide="mail" class="w-4 h-4 text-cyan-400"></i>
-                            <span>Kotak Masuk Pesan Admin</span>
+                            <i data-lucide="message-circle" class="w-4 h-4 text-emerald-400"></i>
+                            <span>Hubungi Admin via WhatsApp</span>
                         </span>
                         <div class="flex items-center gap-1.5">
-                            <span id="user-inbox-badge" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500 text-white font-mono shadow-sm">0</span>
+                            <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono">WA ONLINE</span>
                             <i data-lucide="chevron-right" class="w-4 h-4 text-white/40 group-hover:text-white group-hover:translate-x-0.5 transition-all"></i>
                         </div>
                     </button>
@@ -514,6 +514,28 @@ var Profile = {
         Profile.openQrisPaymentModal(Profile.selectedVipPackage);
     },
 
+    async openWhatsAppSupport(customMessage) {
+        var config = Profile.cachedPaymentConfig;
+        var adminWa = (config && config.adminWhatsapp) ? config.adminWhatsapp : '6281234567890';
+        try {
+            var res = await fetch('/api/payment-config?t=' + Date.now());
+            var data = await res.json();
+            if (data && data.status && data.config && data.config.adminWhatsapp) {
+                adminWa = data.config.adminWhatsapp;
+                Profile.cachedPaymentConfig = data.config;
+            }
+        } catch(e) {}
+
+        var cleanNum = String(adminWa).replace(/[^0-9]/g, '');
+        if (!cleanNum) cleanNum = '6281234567890';
+        if (cleanNum.startsWith('0')) cleanNum = '62' + cleanNum.substring(1);
+
+        var u = (typeof Auth !== 'undefined' && Auth.currentUser) ? Auth.currentUser : {};
+        var defaultMsg = customMessage || `Halo Admin MusifyStar, saya @${u.username || 'Pengguna'} butuh bantuan mengenai aplikasi.`;
+        var url = `https://wa.me/${cleanNum}?text=${encodeURIComponent(defaultMsg)}`;
+        window.open(url, '_blank');
+    },
+
     // ==============================================================
     // FOTO 5: HALAMAN PEMBAYARAN QRIS (ADMIN BISA UBAH GAMBAR QRIS)
     // ==============================================================
@@ -531,7 +553,9 @@ var Profile = {
             }
         } catch(e) {}
 
-        var qrisUrl = (config && config.qrisUrl) || '/qris.png';
+        var rawQris = config && config.qrisUrl;
+        var isCustomQrisUploaded = rawQris && rawQris !== '/qris.png' && !rawQris.includes('placeholder');
+        var qrisUrl = isCustomQrisUploaded ? rawQris : '';
         var qrisHolder = (config && config.qrisHolder) || 'NABIL (MusifyStar Official)';
         var pkg = selectedPackage || { name: 'Paket Bulanan VIP', duration: '30 Hari', price: 19000 };
         var priceFmt = Number(pkg.price).toLocaleString('id-ID');
@@ -572,11 +596,23 @@ var Profile = {
                     </span>
                 </div>
 
-                <!-- Foto QRIS Penuh & Diperbesar (Tanpa latar putih/kuning & tanpa teks tambahan) -->
+                <!-- Foto QRIS Penuh / Kosong jika admin belum menambahkan -->
                 <div class="flex flex-col items-center justify-center w-full my-1">
+                    ${isCustomQrisUploaded ? `
                     <div class="w-full max-w-[340px] sm:max-w-[380px] flex items-center justify-center overflow-hidden rounded-2xl bg-black/40 border border-white/10 shadow-2xl relative">
-                        <img id="qris-payment-image" src="${qrisUrl}" class="w-full h-auto max-h-[520px] object-contain select-none rounded-2xl block" alt="Barcode QRIS MusifyStar" onerror="this.src='/qris.png'">
+                        <img id="qris-payment-image" src="${qrisUrl}" class="w-full h-auto max-h-[520px] object-contain select-none rounded-2xl block" alt="Barcode QRIS MusifyStar" onerror="this.parentElement.innerHTML='<p class=\\'text-xs text-rose-400 p-4 text-center\\'>Gagal memuat barcode QRIS</p>'">
                     </div>
+                    ` : `
+                    <div class="w-full p-6 bg-black/40 border border-dashed border-amber-400/30 rounded-2xl text-center space-y-2">
+                        <i data-lucide="image-off" class="w-10 h-10 text-amber-400 mx-auto"></i>
+                        <p class="text-xs font-bold text-white">Foto / Barcode QRIS Belum Ditambahkan oleh Admin</p>
+                        <p class="text-[10px] text-white/50">Admin belum menambahkan foto QRIS. Silakan hubungi Admin via WhatsApp untuk melakukan pembayaran & konfirmasi VIP.</p>
+                        <button type="button" onclick="Profile.openWhatsAppSupport('Halo Admin MusifyStar, saya ingin bayar paket ' + encodeURIComponent('${pkg.name}') + ' (Rp ${priceFmt})')" class="mt-2 py-2 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-black font-extrabold text-xs inline-flex items-center gap-1.5 transition active:scale-95 cursor-pointer shadow-md">
+                            <i data-lucide="message-circle" class="w-4 h-4"></i>
+                            <span>Chat Admin via WhatsApp</span>
+                        </button>
+                    </div>
+                    `}
                 </div>
 
                 <!-- Tombol Unduh Barcode QRIS (File Asli PNG tanpa .html) -->
@@ -808,23 +844,24 @@ var Profile = {
             <div class="flex-1 overflow-y-auto px-5 pb-5 space-y-3.5 hide-scrollbar">
                 <!-- PANEL 1: QRIS VIEW -->
                 <div id="don-view-qris" class="space-y-3">
+                    ${(config.qrisUrl && config.qrisUrl !== '/qris.png' && !config.qrisUrl.includes('placeholder')) ? `
                     <div class="w-full flex items-center justify-center overflow-hidden rounded-2xl select-none bg-white/5 p-2 border border-white/10" 
                          style="-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;"
                          oncontextmenu="return false;">
                         <img id="qris-img-display" 
-                             src="${config.qrisUrl || '/qris.png'}" 
+                             src="${config.qrisUrl}" 
                              alt="QRIS MusifyStar" 
                              draggable="false"
                              oncontextmenu="return false;"
                              class="w-full h-auto max-h-[46vh] object-contain rounded-xl shadow-2xl pointer-events-none select-none" 
                              style="-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;pointer-events:none;"
-                             onerror="this.src='/qris.png'" />
+                             onerror="this.parentElement.innerHTML='<p class=\\'text-xs text-rose-400 p-4 text-center\\'>Gagal memuat QRIS</p>'" />
                     </div>
                     <p class="text-[11px] text-white/50 text-center leading-relaxed">
                         Scan dengan GoPay, OVO, DANA, BCA, BRI, Mandiri, BNI, ShopeePay & semua bank / mobile banking di Indonesia.
                     </p>
                     <div class="grid grid-cols-2 gap-2 pt-1">
-                        <button id="btn-save-qris" onclick="Profile.downloadQRIS('${config.qrisUrl || '/qris.png'}', '${config.qrisFilename || 'QRIS-MusifyStar-Nabil.png'}')" class="py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-500 to-emerald-500 hover:opacity-95 active:scale-95 text-black text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-lg shadow-amber-500/20 cursor-pointer text-center">
+                        <button id="btn-save-qris" onclick="Profile.downloadQRIS('${config.qrisUrl}', '${config.qrisFilename || 'QRIS-MusifyStar-Nabil.png'}')" class="py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-500 to-emerald-500 hover:opacity-95 active:scale-95 text-black text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-lg shadow-amber-500/20 cursor-pointer text-center">
                             <i data-lucide="download" class="w-4 h-4"></i>
                             <span>Simpan QRIS</span>
                         </button>
@@ -833,6 +870,17 @@ var Profile = {
                             <span>Tutup</span>
                         </button>
                     </div>
+                    ` : `
+                    <div class="p-6 bg-black/40 border border-dashed border-amber-400/30 rounded-2xl text-center space-y-2">
+                        <i data-lucide="image-off" class="w-10 h-10 text-amber-400 mx-auto"></i>
+                        <p class="text-xs font-bold text-white">Foto / Barcode QRIS Belum Ditambahkan oleh Admin</p>
+                        <p class="text-[10px] text-white/50">Admin belum menambahkan foto QRIS donasi. Silakan gunakan Rekening & E-Wallet atau hubungi Admin via WhatsApp.</p>
+                        <button type="button" onclick="Profile.openWhatsAppSupport('Halo Admin MusifyStar, saya ingin melakukan donasi pengembang.')" class="mt-2 py-2 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-black font-extrabold text-xs inline-flex items-center gap-1.5 transition active:scale-95 cursor-pointer shadow-md">
+                            <i data-lucide="message-circle" class="w-4 h-4"></i>
+                            <span>Hubungi Admin via WhatsApp</span>
+                        </button>
+                    </div>
+                    `}
                 </div>
 
                 <!-- PANEL 2: REKENING & E-WALLET VIEW -->
@@ -1360,7 +1408,7 @@ var Profile = {
                 <div class="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-between gap-2">
                     <div class="flex items-center gap-1.5">
                         <i data-lucide="crown" class="w-3.5 h-3.5 text-amber-400"></i>
-                        <span class="text-[11px] font-semibold text-white">Status Membership: <strong class="text-amber-300 font-bold">VIP Aktif</strong></span>
+                        <span class="text-[11px] font-semibold text-white">Status Membership <strong class="text-amber-300 font-bold">VIP Aktif</strong></span>
                     </div>
                     <span class="text-[8.5px] font-mono px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold">Semua Fitur Terbuka</span>
                 </div>
@@ -8737,135 +8785,7 @@ var Profile = {
     },
 
     async openUserInboxModal() {
-        var existing = gid('musifystar-user-inbox-modal');
-        if (existing) existing.remove();
-
-        var u = (typeof Auth !== 'undefined' && Auth.currentUser) ? Auth.currentUser : null;
-        var userId = u ? (u.id || u.uid) : 'guest';
-        var username = u ? (u.username || '') : '';
-        var token = localStorage.getItem('musifystar_auth_token') || sessionStorage.getItem('musifystar_auth_token');
-
-        var headers = {};
-        if (token) headers['Authorization'] = 'Bearer ' + token;
-        headers['x-user-id'] = userId;
-        headers['x-user-name'] = username;
-
-        var modal = document.createElement('div');
-        modal.id = 'musifystar-user-inbox-modal';
-        modal.className = 'fixed inset-0 z-[250] flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-xl animate-fade-in';
-        modal.innerHTML = `
-        <div class="w-full max-w-md bg-[#11131a] border border-white/20 rounded-3xl shadow-2xl overflow-hidden relative flex flex-col max-h-[88vh]" style="box-shadow: 0 25px 50px -12px rgba(6,182,212,0.25);">
-            <!-- Close Button -->
-            <button onclick="Profile.closeUserInboxModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-white/70 hover:text-white transition-all cursor-pointer z-10">
-                <i data-lucide="x" class="w-4 h-4"></i>
-            </button>
-
-            <!-- Header -->
-            <div class="p-5 pb-3 border-b border-white/10 shrink-0">
-                <div class="flex items-center gap-3">
-                    <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center text-white shadow-lg shadow-cyan-500/25 shrink-0">
-                        <i data-lucide="mail" class="w-6 h-6"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-base sm:text-lg font-black text-white tracking-tight">Kotak Masuk Pesan Admin</h2>
-                        <p class="text-xs text-white/60">Pemberitahuan resmi dan pesan pribadi dari administrator MusifyStar.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Action bar -->
-            <div class="px-5 py-2.5 bg-black/40 border-b border-white/10 flex items-center justify-between text-xs shrink-0">
-                <span id="user-inbox-count-label" class="text-white/50 text-[11px]">Memuat pesan...</span>
-                <button type="button" onclick="Profile.markAllUserMessagesRead()" class="text-cyan-400 hover:text-cyan-300 font-bold text-[11px] flex items-center gap-1 active:scale-95 transition cursor-pointer">
-                    <i data-lucide="check-check" class="w-3.5 h-3.5"></i>
-                    <span>Tandai Semua Dibaca</span>
-                </button>
-            </div>
-
-            <!-- Messages List Container -->
-            <div id="user-inbox-messages-container" class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3 hide-scrollbar">
-                <div class="text-center py-12 text-white/50 space-y-2">
-                    <i data-lucide="loader-2" class="w-8 h-8 animate-spin mx-auto text-cyan-400"></i>
-                    <p class="text-xs">Mengambil pesan masuk...</p>
-                </div>
-            </div>
-        </div>`;
-
-        modal.onclick = function(e) {
-            if (e.target === modal) Profile.closeUserInboxModal();
-        };
-
-        document.body.appendChild(modal);
-        lucide.createIcons();
-
-        // Fetch messages
-        try {
-            var res = await fetch(`/api/messages?action=user_inbox&userId=${encodeURIComponent(userId)}&username=${encodeURIComponent(username)}`, { headers: headers });
-            var data = await res.json();
-            var container = gid('user-inbox-messages-container');
-            var countLabel = gid('user-inbox-count-label');
-
-            if (data && data.status && Array.isArray(data.messages) && data.messages.length > 0) {
-                if (countLabel) countLabel.innerText = data.messages.length + ' pesan (' + data.unreadCount + ' belum dibaca)';
-
-                container.innerHTML = data.messages.map(function(m) {
-                    var dateStr = new Date(m.createdAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
-                    var priorityClass = 'bg-sky-500/20 text-sky-300 border-sky-500/30';
-                    var priorityText = 'INFO';
-                    if (m.priority === 'warning') { priorityClass = 'bg-rose-500/20 text-rose-300 border-rose-500/30'; priorityText = 'PERINGATAN'; }
-                    else if (m.priority === 'important') { priorityClass = 'bg-amber-500/20 text-amber-300 border-amber-500/30'; priorityText = 'PENTING'; }
-                    else if (m.priority === 'vip') { priorityClass = 'bg-purple-500/20 text-purple-300 border-purple-500/30'; priorityText = 'VIP'; }
-
-                    var unreadDot = !m.isRead ? '<span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-md shadow-cyan-400/50"></span>' : '';
-
-                    return `
-                    <div onclick="Profile.markUserMessageRead('${m.id}')" class="p-4 rounded-2xl ${m.isRead ? 'bg-white/[0.03] border-white/10' : 'bg-cyan-500/[0.07] border-cyan-500/30 shadow-md shadow-cyan-500/10'} border transition-all space-y-2 cursor-pointer group hover:border-cyan-400/50">
-                        <div class="flex items-center justify-between gap-2">
-                            <div class="flex items-center gap-2">
-                                ${unreadDot}
-                                <span class="text-[9px] font-bold px-1.5 py-0.5 rounded border ${priorityClass} font-mono">Pesan Dari : Admin MusifyStar</span>
-                                <span class="text-[9px] font-bold px-1.5 py-0.5 rounded border ${priorityClass} font-mono">${priorityText}</span>
-                                <span class="text-[11px] text-white/50 font-medium"></span>
-                            </div>
-                            <span class="text-[10px] text-white/40">${dateStr}</span>
-                        </div>
-                        <h4 class="text-xs sm:text-sm font-bold text-white tracking-wide group-hover:text-cyan-300 transition-colors">${Profile.escapeHtml(m.title)}</h4>
-                        <p class="text-xs text-white/80 whitespace-pre-wrap leading-relaxed">${Profile.escapeHtml(m.body)}</p>
-                        ${m.actionUrl ? `
-                        <div class="pt-2">
-                            <a href="${Profile.escapeHtml(m.actionUrl)}" target="_blank" onclick="event.stopPropagation()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/40 text-cyan-300 font-bold text-[11px] transition active:scale-95">
-                                <span>Buka Tautan</span>
-                                <i data-lucide="external-link" class="w-3 h-3"></i>
-                            </a>
-                        </div>` : ''}
-                    </div>`;
-                }).join('');
-                lucide.createIcons();
-            } else {
-                if (countLabel) countLabel.innerText = '0 pesan';
-                container.innerHTML = `
-                <div class="text-center py-16 text-white/50 space-y-3">
-                    <div class="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto text-white/30">
-                        <i data-lucide="inbox" class="w-7 h-7"></i>
-                    </div>
-                    <h4 class="text-sm font-bold text-white">Kotak Masuk Kosong</h4>
-                    <p class="text-xs text-white/50 max-w-xs mx-auto leading-relaxed">
-                        Anda belum memiliki pesan pribadi atau pengumuman dari administrator MusifyStar.
-                    </p>
-                </div>`;
-                lucide.createIcons();
-            }
-        } catch(e) {
-            var container = gid('user-inbox-messages-container');
-            if (container) {
-                container.innerHTML = `
-                <div class="text-center py-12 text-red-400 space-y-2">
-                    <i data-lucide="alert-triangle" class="w-8 h-8 mx-auto"></i>
-                    <p class="text-xs font-semibold">Gagal memuat kotak masuk pesan.</p>
-                </div>`;
-                lucide.createIcons();
-            }
-        }
+        Profile.openWhatsAppSupport('Halo Admin MusifyStar, saya membutuhkan bantuan mengenai akun/layanan.');
     },
 
     closeUserInboxModal() {

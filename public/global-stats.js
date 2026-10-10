@@ -417,7 +417,7 @@
                                 <div class="relative z-20 flex flex-col items-center w-full px-1">
                                     <h5 class="text-xs font-black text-white truncate w-full flex items-center justify-center gap-1">
                                         <span>${second.username}</span>
-                                        ${b2.isMe ? '<span class="text-[8px] bg-sky-500/20 text-sky-300 border border-sky-500/30 px-1 py-0.2 rounded font-bold">Kamu</span>' : ''}
+                                        ${b2.isMe ? '<span class="text-[8px] bg-sky-500/20 text-sky-300 border border-sky-500/30 px-1 py-0.2 rounded font-bold"></span>' : ''}
                                     </h5>
                                     ${b2.borderName ? `<span class="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-slate-400/20 text-slate-200 border border-slate-400/30 text-[9px] font-bold leading-none shadow-sm">Border: ${b2.borderName}</span>` : ''}
                                     <span class="text-[10px] text-slate-300 font-mono mt-1 font-bold">${second.formattedDuration}</span>

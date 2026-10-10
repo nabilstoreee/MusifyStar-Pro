@@ -13,6 +13,9 @@ var Auth = {
             } else {
                 sessionStorage.setItem('musifystar_auth_user', JSON.stringify(user));
             }
+            window.dispatchEvent(new CustomEvent('musifystar:user_profile_updated', {
+                detail: { user: user }
+            }));
         } catch(e) {}
     },
 
@@ -563,6 +566,51 @@ var Auth = {
         </span>`;
     },
 
+    getVipBadgeHTML(extraClasses) {
+        return `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-black font-extrabold text-[8.5px] leading-none shadow-[0_0_8px_rgba(245,158,11,0.35)] border border-amber-300/60 shrink-0 align-middle ${extraClasses || ''}"><svg class="w-2.5 h-2.5 shrink-0 fill-black text-black" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.3 8.87l5.378-2.689a.5.5 0 0 1 .7.574l-2.002 11.01a1 1 0 0 1-.985.821H5.609a1 1 0 0 1-.985-.821L2.622 6.755a.5.5 0 0 1 .7-.574l5.378 2.689z"/></svg><span>VIP</span></span>`;
+    },
+
+    getRankBadgePillHTML(equippedBadge, title, icon, colorHex) {
+        if (!equippedBadge && !title) return '';
+        var badgeKey = (equippedBadge || '').toLowerCase();
+        
+        var map = {
+            'badge_echo': { name: 'Echo', icon: 'disc', color: '#06b6d4', svg: `<svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>` },
+            'badge_pulse': { name: 'Pulse', icon: 'activity', color: '#10b981', svg: `<svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>` },
+            'badge_bronze': { name: 'Bronze', icon: 'shield', color: '#b45309', svg: `<svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67 0C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.8 17 5 19 5a1 1 0 0 1 1 1z"/></svg>` },
+            'badge_silver': { name: 'Silver', icon: 'shield-check', color: '#cbd5e1', svg: `<svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67 0C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.8 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></svg>` },
+            'badge_gold': { name: 'Gold', icon: 'star', color: '#eab308', svg: `<svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 fill-current" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>` },
+            'badge_platinum': { name: 'Platinum', icon: 'box', color: '#6366f1', svg: `<svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>` },
+            'badge_diamond': { name: 'Diamond', icon: 'gem', color: '#0284c7', svg: `<svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12l4 6-10 12L2 9z"/><path d="M11 3 8 9l4 12 4-12-3-6"/><path d="M2 9h20"/></svg>` },
+            'badge_elite': { name: 'Elite', icon: 'crown', color: '#a855f7', svg: `<svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 fill-current" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.3 8.87l5.378-2.689a.5.5 0 0 1 .7.574l-2.002 11.01a1 1 0 0 1-.985.821H5.609a1 1 0 0 1-.985-.821L2.622 6.755a.5.5 0 0 1 .7-.574l5.378 2.689z"/></svg>` },
+            'badge_master': { name: 'Master', icon: 'target', color: '#f43f5e', svg: `<svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>` },
+            'badge_vip': { name: 'VIP', icon: 'crown', color: '#f59e0b', svg: `<svg class="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 fill-current text-amber-400" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.3 8.87l5.378-2.689a.5.5 0 0 1 .7.574l-2.002 11.01a1 1 0 0 1-.985.821H5.609a1 1 0 0 1-.985-.821L2.622 6.755a.5.5 0 0 1 .7-.574l5.378 2.689z"/></svg>` }
+        };
+
+        var info = map[badgeKey];
+        if (!info && title) {
+            var tLow = title.toLowerCase();
+            if (tLow.includes('echo')) info = map['badge_echo'];
+            else if (tLow.includes('pulse')) info = map['badge_pulse'];
+            else if (tLow.includes('bronze')) info = map['badge_bronze'];
+            else if (tLow.includes('silver')) info = map['badge_silver'];
+            else if (tLow.includes('gold')) info = map['badge_gold'];
+            else if (tLow.includes('platinum')) info = map['badge_platinum'];
+            else if (tLow.includes('diamond')) info = map['badge_diamond'];
+            else if (tLow.includes('elite')) info = map['badge_elite'];
+            else if (tLow.includes('master')) info = map['badge_master'];
+            else if (tLow.includes('vip')) info = map['badge_vip'];
+        }
+
+        var badgeName = title || (info ? info.name : '');
+        var badgeColor = colorHex || (info ? info.color : '#38bdf8');
+        var svgContent = info ? info.svg : `<svg class="w-2.5 h-2.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2"/></svg>`;
+
+        if (!badgeName) return '';
+
+        return `<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[8.5px] leading-none font-black border shadow-sm select-none shrink-0 align-middle" style="background: rgba(18, 20, 28, 0.95); border-color: ${badgeColor}; color: ${badgeColor}; box-shadow: 0 0 8px ${badgeColor}33;">${svgContent}<span>${typeof Profile !== 'undefined' && Profile.escapeHtml ? Profile.escapeHtml(badgeName) : badgeName}</span></span>`;
+    },
+
     toggleVipMembershipPanel() {
         var content = gid('vip-membership-content');
         var chevron = gid('vip-panel-chevron');
@@ -589,13 +637,16 @@ var Auth = {
         }
     },
 
-    toggleRankBadgePanel() {
+    toggleRankBadgePanel(forceOpen) {
         var content = gid('rank-badge-content');
         var chevron = gid('rank-badge-chevron');
         if (!content) return;
-        if (content.classList.contains('hidden')) {
+        if (forceOpen || content.classList.contains('hidden')) {
             content.classList.remove('hidden');
             if (chevron) chevron.style.transform = 'rotate(180deg)';
+            setTimeout(function() {
+                content.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
         } else {
             content.classList.add('hidden');
             if (chevron) chevron.style.transform = 'rotate(0deg)';
@@ -739,10 +790,7 @@ var Auth = {
                         <h3 class="text-white font-bold text-sm leading-tight truncate max-w-[155px]">${es(u.username)}</h3>
                         ${isMasterAdmin ? `
                         <span id="dropdown-badge-wrapper" class="global-verified-badge-container">${Auth.getVerifiedBadgeHTML()}</span>` : ''}
-                        ${isUserVip ? `
-                        <span class="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-full bg-gradient-to-r from-amber-400 to-yellow-500 text-black font-black text-[8px] shadow-sm">
-                            <i data-lucide="crown" class="w-2 h-2 fill-black"></i> VIP
-                        </span>` : ''}
+                        ${isUserVip ? Auth.getVipBadgeHTML('text-[8px] px-1.5 py-0.2') : ''}
                     </div>
                     <p class="text-white/60 text-[11px] truncate max-w-[170px]">${es(u.email)}</p>
                     ${bName ? `
@@ -843,6 +891,39 @@ var Auth = {
             Auth._vipCountdownInterval = null;
         }
 
+        var userSecs = Number(u.listeningSeconds || u.listening_seconds || 0);
+
+        var cardRanks = [
+            { levelNum: 1, id: 'badge_echo', name: 'Echo', reqHours: 1, reqSec: 3600, label: '1 Jam Mendengarkan', icon: 'disc', iconEmoji: '💽', colorClass: 'cyan', colorHex: '#06b6d4', bgClass: 'bg-cyan-500/10 border-cyan-400/40 text-cyan-400 shadow-[0_0_12px_rgba(6,182,212,0.25)]' },
+            { levelNum: 2, id: 'badge_pulse', name: 'Pulse', reqHours: 5, reqSec: 18000, label: '5 Jam Mendengarkan', icon: 'activity', iconEmoji: '📈', colorClass: 'emerald', colorHex: '#10b981', bgClass: 'bg-emerald-500/10 border-emerald-400/40 text-emerald-400 shadow-[0_0_12px_rgba(16,185,129,0.25)]' },
+            { levelNum: 3, id: 'badge_bronze', name: 'Bronze', reqHours: 10, reqSec: 36000, label: '10 Jam Mendengarkan', icon: 'shield', iconEmoji: '🛡️', colorClass: 'amber', colorHex: '#b45309', bgClass: 'bg-amber-700/10 border-amber-600/40 text-amber-500 shadow-[0_0_12px_rgba(180,83,9,0.25)]' },
+            { levelNum: 4, id: 'badge_silver', name: 'Silver', reqHours: 20, reqSec: 72000, label: '20 Jam Mendengarkan', icon: 'shield-check', iconEmoji: '⚔️', colorClass: 'slate', colorHex: '#cbd5e1', bgClass: 'bg-slate-400/10 border-slate-300/40 text-slate-300 shadow-[0_0_12px_rgba(203,213,225,0.25)]' },
+            { levelNum: 5, id: 'badge_gold', name: 'Gold', reqHours: 35, reqSec: 126000, label: '35 Jam Mendengarkan', icon: 'star', iconEmoji: '⭐', colorClass: 'yellow', colorHex: '#eab308', bgClass: 'bg-yellow-500/10 border-yellow-400/40 text-yellow-400 shadow-[0_0_12px_rgba(234,179,8,0.25)]' },
+            { levelNum: 6, id: 'badge_platinum', name: 'Platinum', reqHours: 50, reqSec: 180000, label: '50 Jam (2 Hari)', icon: 'box', iconEmoji: '📦', colorClass: 'indigo', colorHex: '#6366f1', bgClass: 'bg-indigo-500/10 border-indigo-400/40 text-indigo-300 shadow-[0_0_12px_rgba(99,102,241,0.25)]' },
+            { levelNum: 7, id: 'badge_diamond', name: 'Diamond', reqHours: 75, reqSec: 270000, label: '75 Jam (3 Hari)', icon: 'gem', iconEmoji: '💎', colorClass: 'sky', colorHex: '#0284c7', bgClass: 'bg-sky-500/10 border-sky-400/40 text-sky-400 shadow-[0_0_12px_rgba(2,132,199,0.25)]' },
+            { levelNum: 8, id: 'badge_elite', name: 'Elite', reqHours: 100, reqSec: 360000, label: '100 Jam (4 Hari)', icon: 'crown', iconEmoji: '👑', colorClass: 'purple', colorHex: '#a855f7', bgClass: 'bg-purple-500/10 border-purple-400/40 text-purple-400 shadow-[0_0_12px_rgba(168,85,247,0.25)]' },
+            { levelNum: 9, id: 'badge_master', name: 'Master', reqHours: 150, reqSec: 540000, label: '150 Jam (6 Hari)', icon: 'target', iconEmoji: '🎯', colorClass: 'rose', colorHex: '#f43f5e', bgClass: 'bg-rose-500/10 border-rose-400/40 text-rose-400 shadow-[0_0_12px_rgba(244,63,94,0.25)]' }
+        ];
+
+        var topUnlockedRank = null;
+        for (var rIdx = cardRanks.length - 1; rIdx >= 0; rIdx--) {
+            if (userSecs >= cardRanks[rIdx].reqSec || isMasterAdmin) {
+                topUnlockedRank = cardRanks[rIdx];
+                break;
+            }
+        }
+
+        var equippedRank = cardRanks.find(function(r) { return r.id === u.equippedBadge; }) || cardRanks[0];
+        var formattedListeningTimeText = (function(secs) {
+            if (!secs || secs < 60) return '0 Jam Mendengarkan';
+            var days = Math.floor(secs / 86400);
+            var hours = Math.floor(secs / 3600);
+            if (days >= 1) return days + ' Hari Mendengarkan';
+            return hours + ' Jam Mendengarkan';
+        })(userSecs);
+
+        var currentAutoShowText = topUnlockedRank ? ('Current: ' + topUnlockedRank.name + ' (' + topUnlockedRank.reqHours + 'h)') : 'Current: No rank unlocked (needs 1h)';
+
         var modal = document.createElement('div');
         modal.id = 'user-profile-modal';
         modal.className = 'fixed inset-0 z-[650] bg-[#07090e] flex flex-col select-none overflow-hidden h-[100dvh] max-h-[100dvh]';
@@ -892,12 +973,14 @@ var Auth = {
                             <p class="text-white font-black text-sm truncate flex items-center justify-center gap-1">
                                 <span>${es(u.username)}</span>${isVerified ? `
                                 <span id="modal-badge-wrapper" class="global-verified-badge-container">${Auth.getVerifiedBadgeHTML(badgeS)}</span>` : ''}
-                                ${isUserVip ? `
-                                <span class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-500 text-black font-black text-[9px] shadow-sm ml-1">
-                                    <i data-lucide="crown" class="w-2.5 h-2.5 fill-black"></i> VIP
-                                </span>` : ''}
                             </p>
-                            <p class="text-white/50 text-[11px] truncate mt-0.5">${es(u.email)}</p>
+                            ${(isUserVip || u.equippedBadgeTitle || u.equippedBadge) ? `
+                            <div class="mt-1 flex items-center justify-center gap-1.5 flex-nowrap shrink-0">
+                                ${isUserVip ? Auth.getVipBadgeHTML() : ''}
+                                ${u.equippedBadgeTitle || u.equippedBadge ? Auth.getRankBadgePillHTML(u.equippedBadge, u.equippedBadgeTitle, u.equippedBadgeIcon, u.equippedBadgeColor) : ''}
+                            </div>
+                            ` : ''}
+                            <p class="text-white/50 text-[11px] truncate mt-1">${es(u.email)}</p>
                             <div id="modal-current-border-badge" class="${activeBorderName ? '' : 'hidden'} mt-1 flex items-center justify-center">
                                 <span class="text-[10px] font-bold text-amber-300 bg-amber-400/15 border border-amber-400/30 px-2 py-0.5 rounded-full inline-flex items-center gap-1 shadow-sm">
                                     <i data-lucide="shield" class="w-3 h-3 text-amber-400"></i> Border: <span id="modal-border-name-text">${es(activeBorderName)}</span>
@@ -906,19 +989,23 @@ var Auth = {
                         </div>
                     </div>
 
-                    <!-- Triple Action Button (+ Custom, Avatars, & Border Master) -->
-                    <div class="grid grid-cols-3 gap-2.5 pt-1">
-                        <button type="button" onclick="Auth.triggerGalleryUpload()" class="py-2.5 px-2 rounded-2xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/15 text-white font-bold text-xs flex flex-col items-center justify-center gap-1 active:scale-95 transition-all cursor-pointer shadow-sm">
+                    <!-- Action Buttons (+ Custom, Avatars, Border VIP, & Badge Rank) -->
+                    <div class="grid grid-cols-4 gap-2 pt-1">
+                        <button type="button" onclick="Auth.triggerGalleryUpload()" class="py-2.5 px-1.5 rounded-2xl bg-white/[0.06] hover:bg-white/[0.12] border border-white/15 text-white font-bold text-[11px] flex flex-col items-center justify-center gap-1 active:scale-95 transition-all cursor-pointer shadow-sm">
                             <i data-lucide="plus" class="w-4 h-4 text-white/80"></i>
                             <span>Custom</span>
                         </button>
-                        <button type="button" onclick="Auth.openAvatarPickerModal()" class="py-2.5 px-2 rounded-2xl bg-[#ccff00] hover:bg-[#b8e600] text-black font-extrabold text-xs flex flex-col items-center justify-center gap-1 active:scale-95 transition-all cursor-pointer shadow-[0_0_20px_rgba(204,255,0,0.4)]">
+                        <button type="button" onclick="Auth.openAvatarPickerModal()" class="py-2.5 px-1.5 rounded-2xl bg-[#ccff00] hover:bg-[#b8e600] text-black font-extrabold text-[11px] flex flex-col items-center justify-center gap-1 active:scale-95 transition-all cursor-pointer shadow-[0_0_20px_rgba(204,255,0,0.4)]">
                             <i data-lucide="palette" class="w-4 h-4 fill-black text-black"></i>
                             <span>Avatars</span>
                         </button>
-                        <button type="button" onclick="Auth.openBorderPickerModal()" class="py-2.5 px-2 rounded-2xl bg-gradient-to-tr from-amber-500/20 via-yellow-500/25 to-amber-400/20 hover:from-amber-500/30 hover:to-yellow-500/30 border border-amber-400/50 text-amber-300 font-extrabold text-xs flex flex-col items-center justify-center gap-1 active:scale-95 transition-all cursor-pointer shadow-[0_0_20px_rgba(245,158,11,0.25)]">
+                        <button type="button" onclick="Auth.openBorderPickerModal()" class="py-2.5 px-1.5 rounded-2xl bg-gradient-to-tr from-amber-500/20 via-yellow-500/25 to-amber-400/20 hover:from-amber-500/30 hover:to-yellow-500/30 border border-amber-400/50 text-amber-300 font-extrabold text-[11px] flex flex-col items-center justify-center gap-1 active:scale-95 transition-all cursor-pointer shadow-[0_0_20px_rgba(245,158,11,0.25)]">
                             <i data-lucide="shield" class="w-4 h-4 text-amber-300"></i>
                             <span class="truncate">Border VIP</span>
+                        </button>
+                        <button type="button" onclick="Auth.toggleRankBadgePanel(true)" class="py-2.5 px-1.5 rounded-2xl bg-gradient-to-tr from-sky-500/20 via-blue-500/25 to-indigo-500/20 hover:from-sky-500/30 hover:to-indigo-500/30 border border-sky-400/50 text-sky-300 font-extrabold text-[11px] flex flex-col items-center justify-center gap-1 active:scale-95 transition-all cursor-pointer shadow-[0_0_20px_rgba(56,189,248,0.25)]">
+                            <i data-lucide="award" class="w-4 h-4 text-sky-300"></i>
+                            <span class="truncate">Badge Rank</span>
                         </button>
                     </div>
 
@@ -1051,20 +1138,37 @@ var Auth = {
                         </div>
                     </button>
 
-                    <div id="rank-badge-content" class="hidden p-4 mt-2 rounded-2xl bg-[#12141c]/90 border border-lime-400/25 space-y-4 backdrop-blur-xl shadow-xl transition-all duration-300">
+                    <div id="rank-badge-content" class="hidden p-4 mt-2 rounded-2xl bg-[#12141c]/90 border border-lime-400/25 space-y-3.5 backdrop-blur-xl shadow-xl transition-all duration-300">
                         <div>
                             <p class="text-[11px] text-white/50 leading-relaxed">Showcase any of your unlocked badges next to your name. Changing this badge does not affect your actual stats ranking.</p>
                         </div>
 
+                        <!-- Featured Active Tier Card (Sesuai Foto IMG_20261011_035045.png) -->
+                        <div class="p-3.5 rounded-2xl bg-[#181c24] border border-lime-400/40 relative flex items-center justify-between gap-3 shadow-[0_0_20px_rgba(163,230,53,0.12)]">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-12 h-12 rounded-full border flex items-center justify-center shrink-0 ${equippedRank.bgClass}">
+                                    <i data-lucide="${equippedRank.icon}" class="w-6 h-6"></i>
+                                </div>
+                                <div class="min-w-0">
+                                    <h3 class="text-xs sm:text-sm font-black text-white leading-tight">Tier: ${Profile.escapeHtml(equippedRank.name)}</h3>
+                                    <p class="text-[11px] font-bold text-lime-300 mt-1">${formattedListeningTimeText}</p>
+                                </div>
+                            </div>
+                            <div class="px-2.5 py-1 rounded-full bg-lime-500/20 border border-lime-400/40 text-lime-400 text-[10px] font-black uppercase tracking-wider shrink-0">
+                                #LEVEL ${equippedRank.levelNum}
+                            </div>
+                        </div>
+
                         <!-- Auto-Show Highest Rank Toggle Box -->
-                        <div class="p-3.5 rounded-2xl bg-[#181c24] border border-lime-400/50 flex items-center justify-between gap-3 shadow-[0_0_15px_rgba(163,230,53,0.15)]">
+                        <div onclick="${topUnlockedRank ? `Auth.equipRankBadge('${topUnlockedRank.id}', '${topUnlockedRank.name}', '${topUnlockedRank.iconEmoji}', '${topUnlockedRank.colorHex}')` : `if(typeof showToast==='function') showToast('Belum ada rank yang terbuka. Dengarkan musik minimal 1 jam!')`}"
+                             class="p-3.5 rounded-2xl bg-[#181c24] border border-lime-400/50 flex items-center justify-between gap-3 shadow-[0_0_15px_rgba(163,230,53,0.15)] cursor-pointer active:scale-[0.99] transition-all">
                             <div class="flex items-center gap-3 min-w-0">
                                 <div class="w-9 h-9 rounded-xl bg-lime-400/15 border border-lime-400/30 flex items-center justify-center text-lime-400 shrink-0">
                                     <i data-lucide="refresh-cw" class="w-4 h-4"></i>
                                 </div>
                                 <div class="min-w-0">
                                     <h4 class="text-xs font-bold text-white">Auto-Show Highest Rank</h4>
-                                    <p class="text-[10px] text-white/50 truncate mt-0.5">Current: No rank unlocked (needs 1h)</p>
+                                    <p class="text-[10px] text-lime-300 font-semibold truncate mt-0.5">${currentAutoShowText}</p>
                                 </div>
                             </div>
                             <div class="w-6 h-6 rounded-full bg-lime-400/20 text-lime-400 flex items-center justify-center shrink-0">
@@ -1072,99 +1176,31 @@ var Auth = {
                             </div>
                         </div>
 
-                        <!-- All Ranks Title & Grid -->
+                        <!-- All Ranks Title & Grid (Sesuai Foto Screenshot_20261011-035124.png) -->
                         <div class="pt-1">
                             <h4 class="text-xs font-bold text-white/80 mb-2.5">All Ranks</h4>
                             <div class="grid grid-cols-3 gap-2.5">
-                                <!-- 1. Echo -->
-                                <div class="p-3 rounded-2xl bg-white/[0.03] border border-white/5 flex flex-col items-center justify-center text-center relative group">
-                                    <i data-lucide="lock" class="w-3 h-3 text-white/30 absolute top-2.5 right-2.5"></i>
-                                    <div class="w-10 h-10 rounded-full bg-cyan-500/10 border border-cyan-400/30 flex items-center justify-center text-cyan-400 my-1">
-                                        <i data-lucide="disc" class="w-5 h-5"></i>
-                                    </div>
-                                    <span class="text-[11px] font-bold text-white/90 mt-1">Echo</span>
-                                    <span class="text-[9px] text-white/40">1h</span>
-                                </div>
+                                ${cardRanks.map(function(r) {
+                                    var isUnlocked = (userSecs >= r.reqSec) || isMasterAdmin;
+                                    var isEquipped = (u.equippedBadge === r.id);
+                                    return `
+                                    <div onclick="${isUnlocked ? `Auth.equipRankBadge('${r.id}', '${r.name}', '${r.iconEmoji}', '${r.colorHex}')` : `if(typeof showToast==='function') showToast('Rank ${r.name} terkunci! Butuh ${r.label} memutar musik.')`}"
+                                         class="p-2.5 rounded-2xl border transition-all flex flex-col items-center justify-center text-center relative group ${isUnlocked ? 'cursor-pointer hover:border-lime-400/60 active:scale-95' : 'opacity-40 select-none'} ${isEquipped ? 'bg-lime-400/15 border-lime-400 shadow-[0_0_15px_rgba(163,230,53,0.3)]' : 'bg-white/[0.03] border-white/5'}">
+                                        
+                                        <!-- Header Item: #LEVEL tag & Check/Lock icon -->
+                                        <div class="w-full flex items-center justify-between gap-1 mb-1">
+                                            <span class="text-[8px] sm:text-[9px] font-black px-1.5 py-0.2 rounded bg-lime-400/15 text-lime-400 border border-lime-400/30">#LEVEL ${r.levelNum}</span>
+                                            ${isUnlocked ? (isEquipped ? `<span class="w-4 h-4 rounded-full bg-lime-400 text-black flex items-center justify-center text-[9px] font-black shrink-0"><i data-lucide="check" class="w-2.5 h-2.5 stroke-[3]"></i></span>` : '') : `<i data-lucide="lock" class="w-3 h-3 text-white/40 shrink-0"></i>`}
+                                        </div>
 
-                                <!-- 2. Pulse -->
-                                <div class="p-3 rounded-2xl bg-white/[0.03] border border-white/5 flex flex-col items-center justify-center text-center relative group">
-                                    <i data-lucide="lock" class="w-3 h-3 text-white/30 absolute top-2.5 right-2.5"></i>
-                                    <div class="w-10 h-10 rounded-full bg-emerald-500/10 border border-emerald-400/30 flex items-center justify-center text-emerald-400 my-1">
-                                        <i data-lucide="activity" class="w-5 h-5"></i>
+                                        <div class="w-10 h-10 rounded-full border flex items-center justify-center my-1 ${r.bgClass}">
+                                            <i data-lucide="${r.icon}" class="w-5 h-5"></i>
+                                        </div>
+                                        <span class="text-[11px] font-black text-white/90 mt-0.5 truncate max-w-full">${Profile.escapeHtml(r.name)}</span>
+                                        <span class="text-[8.5px] sm:text-[9px] ${isUnlocked ? (isEquipped ? 'text-lime-300 font-black' : 'text-white/70 font-bold') : 'text-white/40'} leading-tight mt-0.5">${r.label}</span>
                                     </div>
-                                    <span class="text-[11px] font-bold text-white/90 mt-1">Pulse</span>
-                                    <span class="text-[9px] text-white/40">5h</span>
-                                </div>
-
-                                <!-- 3. Bronze -->
-                                <div class="p-3 rounded-2xl bg-white/[0.03] border border-white/5 flex flex-col items-center justify-center text-center relative group">
-                                    <i data-lucide="lock" class="w-3 h-3 text-white/30 absolute top-2.5 right-2.5"></i>
-                                    <div class="w-10 h-10 rounded-full bg-amber-700/10 border border-amber-600/30 flex items-center justify-center text-amber-500 my-1">
-                                        <i data-lucide="shield" class="w-5 h-5"></i>
-                                    </div>
-                                    <span class="text-[11px] font-bold text-white/90 mt-1">Bronze</span>
-                                    <span class="text-[9px] text-white/40">10h</span>
-                                </div>
-
-                                <!-- 4. Silver -->
-                                <div class="p-3 rounded-2xl bg-white/[0.03] border border-white/5 flex flex-col items-center justify-center text-center relative group">
-                                    <i data-lucide="lock" class="w-3 h-3 text-white/30 absolute top-2.5 right-2.5"></i>
-                                    <div class="w-10 h-10 rounded-full bg-slate-400/10 border border-slate-300/30 flex items-center justify-center text-slate-300 my-1">
-                                        <i data-lucide="shield-check" class="w-5 h-5"></i>
-                                    </div>
-                                    <span class="text-[11px] font-bold text-white/90 mt-1">Silver</span>
-                                    <span class="text-[9px] text-white/40">20h</span>
-                                </div>
-
-                                <!-- 5. Gold -->
-                                <div class="p-3 rounded-2xl bg-white/[0.03] border border-white/5 flex flex-col items-center justify-center text-center relative group">
-                                    <i data-lucide="lock" class="w-3 h-3 text-white/30 absolute top-2.5 right-2.5"></i>
-                                    <div class="w-10 h-10 rounded-full bg-yellow-500/10 border border-yellow-400/30 flex items-center justify-center text-yellow-400 my-1">
-                                        <i data-lucide="star" class="w-5 h-5 fill-yellow-400"></i>
-                                    </div>
-                                    <span class="text-[11px] font-bold text-white/90 mt-1">Gold</span>
-                                    <span class="text-[9px] text-white/40">35h</span>
-                                </div>
-
-                                <!-- 6. Platinum -->
-                                <div class="p-3 rounded-2xl bg-white/[0.03] border border-white/5 flex flex-col items-center justify-center text-center relative group">
-                                    <i data-lucide="lock" class="w-3 h-3 text-white/30 absolute top-2.5 right-2.5"></i>
-                                    <div class="w-10 h-10 rounded-full bg-indigo-500/10 border border-indigo-400/30 flex items-center justify-center text-indigo-300 my-1">
-                                        <i data-lucide="box" class="w-5 h-5"></i>
-                                    </div>
-                                    <span class="text-[11px] font-bold text-white/90 mt-1">Platinum</span>
-                                    <span class="text-[9px] text-white/40">50h</span>
-                                </div>
-
-                                <!-- 7. Diamond -->
-                                <div class="p-3 rounded-2xl bg-white/[0.03] border border-white/5 flex flex-col items-center justify-center text-center relative group">
-                                    <i data-lucide="lock" class="w-3 h-3 text-white/30 absolute top-2.5 right-2.5"></i>
-                                    <div class="w-10 h-10 rounded-full bg-sky-500/10 border border-sky-400/30 flex items-center justify-center text-sky-400 my-1">
-                                        <i data-lucide="gem" class="w-5 h-5"></i>
-                                    </div>
-                                    <span class="text-[11px] font-bold text-white/90 mt-1">Diamond</span>
-                                    <span class="text-[9px] text-white/40">75h</span>
-                                </div>
-
-                                <!-- 8. Elite -->
-                                <div class="p-3 rounded-2xl bg-white/[0.03] border border-white/5 flex flex-col items-center justify-center text-center relative group">
-                                    <i data-lucide="lock" class="w-3 h-3 text-white/30 absolute top-2.5 right-2.5"></i>
-                                    <div class="w-10 h-10 rounded-full bg-purple-500/10 border border-purple-400/30 flex items-center justify-center text-purple-400 my-1">
-                                        <i data-lucide="crown" class="w-5 h-5"></i>
-                                    </div>
-                                    <span class="text-[11px] font-bold text-white/90 mt-1">Elite</span>
-                                    <span class="text-[9px] text-white/40">100h</span>
-                                </div>
-
-                                <!-- 9. Master -->
-                                <div class="p-3 rounded-2xl bg-white/[0.03] border border-white/5 flex flex-col items-center justify-center text-center relative group">
-                                    <i data-lucide="lock" class="w-3 h-3 text-white/30 absolute top-2.5 right-2.5"></i>
-                                    <div class="w-10 h-10 rounded-full bg-rose-500/10 border border-rose-400/30 flex items-center justify-center text-rose-400 my-1">
-                                        <i data-lucide="target" class="w-5 h-5"></i>
-                                    </div>
-                                    <span class="text-[11px] font-bold text-white/90 mt-1">Master</span>
-                                    <span class="text-[9px] text-white/40">150h</span>
-                                </div>
+                                    `;
+                                }).join('')}
                             </div>
                         </div>
                     </div>
@@ -1717,12 +1753,7 @@ var Auth = {
             });
             var data = await res.json();
             if (data && data.status && data.user) {
-                Auth.currentUser = data.user;
-                if (localStorage.getItem('musifystar_auth_token')) {
-                    localStorage.setItem('musifystar_auth_user', JSON.stringify(data.user));
-                } else {
-                    sessionStorage.setItem('musifystar_auth_user', JSON.stringify(data.user));
-                }
+                Auth.saveUser(data.user);
                 showToast('Foto profil berhasil diubah!');
                 Auth.updateHeaderUI();
                 var avImg = gid('modal-user-avatar-img');
@@ -2694,6 +2725,341 @@ var Auth = {
         }
     },
 
+    // ==============================================================
+    // RANK BADGE CUSTOMISATION MODAL & SELECTION SYSTEM
+    // ==============================================================
+    async openRankBadgeCustomizationModal() {
+        var u = Auth.currentUser || {};
+        var myEmail = String(u.email || u.rawEmail || '').toLowerCase().trim();
+        var myUsername = String(u.username || '').toLowerCase().trim();
+        var isMasterAdmin = (myEmail === 'jrnabil570@gmail.com') || (myUsername === 'nabil');
+        var isVipExpired = u.vipExpiresAt && Date.now() > u.vipExpiresAt;
+        var isTierActive = Boolean(u.vipTier && u.vipTier !== 'none');
+        var isUserVip = isMasterAdmin || ((Boolean(u.isPremium || u.is_premium || isTierActive)) && u.vipTier !== 'none' && !isVipExpired);
+
+        // Fetch listening duration & rank from global stats / analytics
+        var listeningSeconds = 0;
+        var myRank = 999;
+        try {
+            var res = await fetch('/api/global-stats?timeframe=all&t=' + Date.now());
+            var data = await res.json();
+            if (data && Array.isArray(data.leaderboard)) {
+                var found = data.leaderboard.find(function(item) {
+                    return (item.id && String(item.id) === String(u.id)) ||
+                           (item.username && item.username.toLowerCase() === myUsername);
+                });
+                if (found) {
+                    listeningSeconds = found.listeningSeconds || 0;
+                    myRank = found.rank || 999;
+                }
+            }
+        } catch(e) {}
+
+        var listeningHours = (listeningSeconds / 3600).toFixed(1);
+
+        // Helper format durasi bersih: Jika >= 1 Hari, tampilkan "X Hari" saja
+        function formatBadgeDurationLabel(secs) {
+            var days = Math.floor(secs / 86400);
+            var hours = Math.floor(secs / 3600);
+            if (days >= 1) {
+                return days === 1 ? '1 Hari' : (secs % 86400 === 0 ? days + ' Hari' : (hours / 24).toFixed(1) + ' Hari');
+            }
+            return hours + ' Jam';
+        }
+
+        // Define Progressive Rank Badges (Locked/Unlocked based on Listening Duration)
+        var badgeList = [
+            {
+                id: 'badge_none',
+                title: 'Tanpa Badge',
+                icon: '🚫',
+                color: '#94a3b8',
+                reqHours: 0,
+                reqLabel: 'Default',
+                desc: 'Tidak menampilkan badge lencana di samping nama.',
+                unlocked: true
+            },
+            {
+                id: 'badge_bronze',
+                title: 'Bronze Listener',
+                icon: '🥉',
+                color: '#cd7f32',
+                reqHours: 1,
+                reqSeconds: 3600,
+                reqLabel: '1 Jam',
+                desc: 'Mencapai 1 Jam total memutar musik di MusifyStar.',
+                unlocked: listeningSeconds >= 3600
+            },
+            {
+                id: 'badge_silver',
+                title: 'Silver Listener',
+                icon: '🥈',
+                color: '#cbd5e1',
+                reqHours: 5,
+                reqSeconds: 18000,
+                reqLabel: '5 Jam',
+                desc: 'Mencapai 5 Jam total memutar musik.',
+                unlocked: listeningSeconds >= 18000
+            },
+            {
+                id: 'badge_gold',
+                title: 'Gold Listener',
+                icon: '🥇',
+                color: '#eab308',
+                reqHours: 15,
+                reqSeconds: 54000,
+                reqLabel: '15 Jam',
+                desc: 'Mencapai 15 Jam total memutar musik.',
+                unlocked: listeningSeconds >= 54000
+            },
+            {
+                id: 'badge_platinum',
+                title: 'Platinum Listener',
+                icon: '🌟',
+                color: '#38bdf8',
+                reqHours: 24,
+                reqSeconds: 86400,
+                reqLabel: '1 Hari',
+                desc: 'Mencapai 1 Hari (24 Jam) total memutar musik.',
+                unlocked: listeningSeconds >= 86400
+            },
+            {
+                id: 'badge_master',
+                title: 'Master Listener',
+                icon: '👑',
+                color: '#f59e0b',
+                reqHours: 60,
+                reqSeconds: 216000,
+                reqLabel: '2.5 Hari',
+                desc: 'Mencapai 2.5 Hari (60 Jam) total memutar musik.',
+                unlocked: listeningSeconds >= 216000
+            },
+            {
+                id: 'badge_legend',
+                title: 'Legend Listener',
+                icon: '⚡',
+                color: '#a855f7',
+                reqHours: 120,
+                reqSeconds: 432000,
+                reqLabel: '5 Hari',
+                desc: 'Mencapai 5 Hari (120 Jam) total memutar musik.',
+                unlocked: listeningSeconds >= 432000
+            },
+            {
+                id: 'badge_immortal',
+                title: 'Immortal Listener',
+                icon: '💎',
+                color: '#ec4899',
+                reqHours: 240,
+                reqSeconds: 864000,
+                reqLabel: '10 Hari',
+                desc: 'Mencapai 10 Hari (240 Jam) total memutar musik.',
+                unlocked: listeningSeconds >= 864000
+            },
+            {
+                id: 'badge_mythic',
+                title: 'Mythic Cosmic',
+                icon: '🌌',
+                color: '#3b82f6',
+                reqHours: 480,
+                reqSeconds: 1728000,
+                reqLabel: '20 Hari',
+                desc: 'Mencapai 20 Hari (480 Jam) total memutar musik!',
+                unlocked: listeningSeconds >= 1728000
+            },
+            {
+                id: 'badge_vip_sultan',
+                title: 'VIP Sultan Member',
+                icon: '👑 VIP',
+                color: '#facc15',
+                reqHours: 0,
+                reqLabel: 'VIP Active',
+                specialReq: 'Memerlukan Akun VIP Aktif',
+                desc: 'Lencana Mahkota Emas Sultan khusus Pengguna VIP.',
+                unlocked: isUserVip
+            },
+            {
+                id: 'badge_top_champion',
+                title: '#1 Global Champion',
+                icon: '🥇 #1',
+                color: '#ffd700',
+                reqHours: 0,
+                reqLabel: '#1 Global',
+                specialReq: 'Mencapai Juara 1 Global Stats',
+                desc: 'Lencana Mahkota Mahakarya Juara 1 Global Stats.',
+                unlocked: myRank === 1 || isMasterAdmin
+            },
+            {
+                id: 'badge_verified',
+                title: 'Verified Official',
+                icon: '✓ Verified',
+                color: '#38bdf8',
+                reqHours: 0,
+                reqLabel: 'Verified',
+                specialReq: 'Akun Pengembang Resmi',
+                desc: 'Lencana verifikasi resmi MusifyStar Developer.',
+                unlocked: isMasterAdmin
+            }
+        ];
+
+        // Find next locked tier threshold for progress bar
+        var nextLocked = badgeList.find(function(b) { return !b.unlocked && b.reqSeconds > 0; });
+        var targetSec = nextLocked ? nextLocked.reqSeconds : 1800000;
+        var progressPct = Math.min(100, Math.round((listeningSeconds / targetSec) * 100));
+
+        var currentEquipped = u.equippedBadge || 'badge_none';
+
+        var existing = gid('rank-badge-modal');
+        if (existing) existing.remove();
+
+        var modal = document.createElement('div');
+        modal.id = 'rank-badge-modal';
+        modal.className = 'fixed inset-0 z-[750] flex items-center justify-center p-3 sm:p-4 bg-black/90 backdrop-blur-md animate-fade-in select-none';
+        modal.innerHTML = `
+            <div class="w-full max-w-md bg-[#13151f] border border-sky-400/40 rounded-3xl shadow-2xl overflow-hidden relative flex flex-col max-h-[92vh]">
+                <!-- Header (Exact match with user screenshot) -->
+                <div class="p-4 border-b border-white/10 bg-gradient-to-r from-sky-500/15 via-blue-500/10 to-transparent flex items-center justify-between shrink-0">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-sky-500 to-indigo-500 flex items-center justify-center text-white font-black shadow-md shadow-sky-500/30 shrink-0">
+                            <i data-lucide="award" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-base font-extrabold text-white tracking-tight leading-tight">Rank Badge Customisation</h2>
+                            <p class="text-[11px] text-white/50 leading-tight mt-0.5">Showcase an unlocked badge on your profile</p>
+                        </div>
+                    </div>
+                    <button onclick="gid('rank-badge-modal')?.remove()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 flex items-center justify-center text-white/70 hover:text-white transition-all cursor-pointer">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+
+                <!-- Banner Explanation Notice -->
+                <div class="p-3 bg-sky-500/10 border-b border-sky-500/20 px-4 text-[11px] text-sky-200 leading-relaxed shrink-0 flex items-start gap-2">
+                    <i data-lucide="info" class="w-4 h-4 text-sky-400 shrink-0 mt-0.5"></i>
+                    <span>Selecting a badge only displays it next to your name and does not change your rank or stats. Badges unlock automatically as your listening time increases!</span>
+                </div>
+
+                <!-- User Listening Time & Progress Bar -->
+                <div class="p-3.5 bg-black/40 border-b border-white/10 space-y-2 shrink-0">
+                    <div class="flex items-center justify-between text-xs font-bold">
+                        <span class="text-white/70 flex items-center gap-1">
+                            <i data-lucide="clock" class="w-3.5 h-3.5 text-sky-400"></i> Total Durasi Mendengarkan:
+                        </span>
+                        <span class="text-sky-300 font-mono">${formatBadgeDurationLabel(listeningSeconds)} (${Number(listeningSeconds).toLocaleString('id-ID')} Detik)</span>
+                    </div>
+                    ${nextLocked ? `
+                    <div>
+                        <div class="flex justify-between text-[10px] text-white/50 mb-1">
+                            <span>Target berikutnya: <strong class="text-white">${nextLocked.title} (${nextLocked.reqLabel || (nextLocked.reqHours + ' Jam')})</strong></span>
+                            <span>${progressPct}% (${formatBadgeDurationLabel(listeningSeconds)} / ${nextLocked.reqLabel || (nextLocked.reqHours + ' Jam')})</span>
+                        </div>
+                        <div class="w-full h-2 rounded-full bg-white/10 overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-sky-400 to-blue-500 transition-all duration-500" style="width: ${progressPct}%"></div>
+                        </div>
+                    </div>
+                    ` : `
+                    <div class="text-[11px] text-amber-300 font-bold flex items-center gap-1">
+                        <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Selamat! Anda telah membuka SEMUA tingkat lencana durasi listening!
+                    </div>
+                    `}
+                </div>
+
+                <!-- Scrollable Badge List -->
+                <div class="flex-1 overflow-y-auto p-4 space-y-2.5 hide-scrollbar">
+                    ${badgeList.map(function(badge) {
+                        var isSelected = (currentEquipped === badge.id);
+                        return `
+                        <div onclick="${badge.unlocked ? `Auth.equipRankBadge('${badge.id}', '${badge.title}', '${badge.icon}', '${badge.color}')` : ''}"
+                             class="p-3.5 rounded-2xl border transition-all flex items-center justify-between ${badge.unlocked ? 'cursor-pointer hover:border-sky-400/50 active:scale-[0.99]' : 'opacity-60 bg-white/[0.02] border-white/5 select-none'} ${isSelected ? 'bg-sky-500/15 border-sky-400 shadow-[0_0_15px_rgba(56,189,248,0.2)]' : 'bg-[#181a24] border-white/10'}">
+                            
+                            <div class="flex items-center gap-3 min-w-0 pr-2">
+                                <div class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg shrink-0 border" style="background: rgba(255,255,255,0.05); border-color: ${badge.color}; color: ${badge.color}">
+                                    ${badge.icon}
+                                </div>
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <h4 class="text-xs sm:text-sm font-black text-white leading-tight">${Profile.escapeHtml(badge.title)}</h4>
+                                        ${badge.reqLabel ? `<span class="text-[9.5px] px-1.5 py-0.2 rounded font-mono font-bold bg-white/10 text-white/70">${badge.reqLabel}</span>` : ''}
+                                        ${isSelected ? `<span class="text-[9px] px-2 py-0.5 rounded-full font-black bg-sky-400 text-black">TERPASANG</span>` : ''}
+                                    </div>
+                                    <p class="text-[11px] text-white/50 mt-0.5 leading-tight">${Profile.escapeHtml(badge.desc)}</p>
+                                    ${!badge.unlocked ? `
+                                    <p class="text-[10px] text-amber-400 font-semibold mt-1 flex items-center gap-1">
+                                        <i data-lucide="lock" class="w-3 h-3"></i> Terkunci • ${badge.specialReq || `Butuh ${badge.reqLabel} mendengarkan musik`}
+                                    </p>
+                                    ` : ''}
+                                </div>
+                            </div>
+
+                            <div class="shrink-0">
+                                ${badge.unlocked ? `
+                                <button type="button" class="px-3 py-1.5 rounded-xl ${isSelected ? 'bg-sky-400 text-black' : 'bg-white/10 text-white hover:bg-sky-400 hover:text-black'} text-xs font-bold transition-all shadow-sm">
+                                    ${isSelected ? 'Dipakai' : 'Gunakan'}
+                                </button>
+                                ` : `
+                                <i data-lucide="lock" class="w-4 h-4 text-white/30"></i>
+                                `}
+                            </div>
+                        </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+        if (window.lucide) lucide.createIcons();
+    },
+
+    async equipRankBadge(badgeId, title, icon, color) {
+        if (!Auth.token) {
+            if (typeof showToast === 'function') showToast('Silakan login terlebih dahulu');
+            return;
+        }
+
+        if (typeof showToast === 'function') showToast('Memasang lencana...');
+        try {
+            var res = await fetch('/api/user-auth?action=update_profile', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + Auth.token
+                },
+                body: JSON.stringify({
+                    equippedBadge: badgeId === 'badge_none' ? '' : badgeId,
+                    equippedBadgeTitle: badgeId === 'badge_none' ? '' : title,
+                    equippedBadgeIcon: badgeId === 'badge_none' ? '' : icon,
+                    equippedBadgeColor: badgeId === 'badge_none' ? '' : color
+                })
+            });
+            var data = await res.json();
+            if (data && data.status && data.user) {
+                Auth.currentUser = data.user;
+                if (typeof Auth.saveUser === 'function') Auth.saveUser(data.user);
+                if (typeof showToast === 'function') {
+                    showToast(badgeId === 'badge_none' ? 'Lencana dilepas.' : `Lencana ${title} berhasil dipasang!`);
+                }
+                gid('rank-badge-modal')?.remove();
+                Auth.updateHeaderUI();
+                if (gid('user-profile-modal')) Auth.openUserProfileModal();
+
+                // Broadcast event to GlobalStats and GlobalChat
+                try {
+                    window.dispatchEvent(new CustomEvent('musifystar:user_badge_updated', {
+                        detail: { user: Auth.currentUser }
+                    }));
+                } catch(e) {}
+                if (typeof GlobalStats !== 'undefined' && typeof GlobalStats.renderCurrentTab === 'function') {
+                    GlobalStats.renderCurrentTab();
+                }
+            } else {
+                if (typeof showToast === 'function') showToast(data?.message || 'Gagal mengubah lencana');
+            }
+        } catch(e) {
+            if (typeof showToast === 'function') showToast('Koneksi bermasalah');
+        }
+    },
+
     async saveEditedUsername(e) {
         if (e && e.preventDefault) e.preventDefault();
         var newUsername = (gid('input-edit-username')?.value || '').trim();
@@ -2716,12 +3082,7 @@ var Auth = {
             });
             var data = await res.json();
             if (data && data.status && data.user) {
-                Auth.currentUser = data.user;
-                if (localStorage.getItem('musifystar_auth_token')) {
-                    localStorage.setItem('musifystar_auth_user', JSON.stringify(data.user));
-                } else {
-                    sessionStorage.setItem('musifystar_auth_user', JSON.stringify(data.user));
-                }
+                Auth.saveUser(data.user);
                 showToast('Username berhasil diperbarui!');
                 Auth.updateHeaderUI();
                 Auth.openUserProfileModal();

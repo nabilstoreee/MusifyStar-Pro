@@ -61,7 +61,7 @@
                     u.isAdmin = true;
                     u.isVerifiedAdmin = true;
                     u.badge = 'Admin';
-                    u.username = 'MusifyStar Official';
+                    if (!u.username) u.username = 'MusifyStar Official';
                     if (!u.email) u.email = 'jrnabil570@gmail.com';
                 } else {
                     u.isAdmin = false;
@@ -212,21 +212,78 @@
             }
         },
 
+        // Render Badges Sequence for Chat Messages & Inputs
+        // Order: [Admin Checkmark (Admin Only)] [VIP Badge (If VIP Active)] [Elite Rank Badge] [Border/Immortal Badge]
+        getUserBadgesHTML(opts) {
+            if (!opts) opts = {};
+            var isAdmin = !!opts.isAdmin;
+            var isVip = !!opts.isVip;
+            var borderName = opts.borderName || '';
+            var borderUrl = opts.borderUrl || '';
+
+            var badges = [];
+
+            // 1. Admin + Centang Biru Badge (Hanya Admin)
+            if (isAdmin) {
+                badges.push(GlobalChat.getAdminBlueCheckmarkHTML());
+            }
+
+            // 2. Logo VIP (Hanya jika VIP Aktif)
+            if (isVip) {
+                if (typeof Auth !== 'undefined' && typeof Auth.getVipBadgeHTML === 'function') {
+                    badges.push(Auth.getVipBadgeHTML('text-[8.5px] px-1.5 py-0.2'));
+                } else {
+                    badges.push(`
+                    <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-black font-extrabold text-[8.5px] shadow-[0_0_8px_rgba(245,158,11,0.35)] border border-amber-300/60 select-none shrink-0 align-middle">
+                        <svg class="w-2.5 h-2.5 shrink-0 fill-black text-black" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.3 8.87l5.378-2.689a.5.5 0 0 1 .7.574l-2.002 11.01a1 1 0 0 1-.985.821H5.609a1 1 0 0 1-.985-.821L2.622 6.755a.5.5 0 0 1 .7-.574l5.378 2.689z"/></svg>
+                        <span>VIP</span>
+                    </span>`);
+                }
+            }
+
+            // 3. Logo Elite (Rank Badge Pill)
+            if (typeof Auth !== 'undefined' && typeof Auth.getRankBadgePillHTML === 'function') {
+                badges.push(Auth.getRankBadgePillHTML('badge_elite', 'Elite'));
+            } else {
+                badges.push(`
+                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[8.5px] leading-none font-black border shadow-sm select-none shrink-0 align-middle" style="background: rgba(18, 20, 28, 0.95); border-color: #a855f7; color: #a855f7; box-shadow: 0 0 8px #a855f733;">
+                    <svg class="w-2.5 h-2.5 shrink-0 fill-current" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.3 8.87l5.378-2.689a.5.5 0 0 1 .7.574l-2.002 11.01a1 1 0 0 1-.985.821H5.609a1 1 0 0 1-.985-.821L2.622 6.755a.5.5 0 0 1 .7-.574l5.378 2.689z"/></svg>
+                    <span>Elite</span>
+                </span>`);
+            }
+
+            // 4. Logo Border Frame / Custom Rank Badge (misal Immortal, Legend, Master, Platinum, dsb)
+            if (borderName && borderName !== 'none' && borderName !== 'Tanpa Border') {
+                var borderPill = GlobalChat.getBorderBadgeHTML(borderName, borderUrl, false);
+                if (borderPill) badges.push(borderPill);
+            }
+
+            return badges.join(' ');
+        },
+
         // Render Bottom Bar
         renderBottomBar(user, isMasterAdmin) {
-            var username = isMasterAdmin ? 'MusifyStar Official' : (user ? (user.username || 'Musisi') : 'Musisi');
+            var username = (user && user.username) ? user.username : (isMasterAdmin ? 'MusifyStar Official' : 'Musisi');
 
-            var senderBadgeHTML = isMasterAdmin 
-                ? GlobalChat.getAdminBlueCheckmarkHTML() 
-                : `<span class="text-[9px] px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-slate-400 ml-1">Member</span>`;
+            var isVipExpired = user ? (user.vipExpiresAt && Date.now() > user.vipExpiresAt) : false;
+            var userIsVip = isMasterAdmin || (user && Boolean(user.isPremium || user.is_premium) && user.vipTier !== 'none' && !isVipExpired);
+            var userBorderName = (typeof Auth !== 'undefined' && Auth.getBorderName && user) ? Auth.getBorderName(user) : (user ? (user.borderName || '') : '');
+            var userBorderUrl = (typeof Auth !== 'undefined' && Auth.getBorderUrl && user) ? Auth.getBorderUrl(user) : (user ? (user.borderUrl || '') : '');
+
+            var senderBadgesHTML = GlobalChat.getUserBadgesHTML({
+                isAdmin: isMasterAdmin,
+                isVip: userIsVip,
+                borderName: userBorderName,
+                borderUrl: userBorderUrl
+            });
 
             return `
             <div class="space-y-1.5">
                 <div class="flex items-center justify-between text-[11px] text-slate-400 px-1 select-none">
-                    <span class="flex items-center gap-1.5 truncate">
+                    <span class="flex items-center gap-1.5 truncate flex-wrap">
                         <span class="text-slate-400">Mengirim sebagai:</span>
                         <b class="text-slate-200 font-semibold truncate">${GlobalChat.escapeHtml(username)}</b>
-                        ${senderBadgeHTML}
+                        ${senderBadgesHTML}
                     </span>
                     <span id="global-chat-char-count" class="font-mono text-[10px] text-slate-500">0/500</span>
                 </div>
@@ -373,13 +430,10 @@
                 // Admin Centang Biru Detection:
                 // Strictly true if email is jrnabil570@gmail.com, or user_id is u_1790196636099_622dc736, or flagged as verified admin
                 var isMsgAdmin = !!m.isVerifiedAdmin || !!m.isAdmin || (msgEmail === 'jrnabil570@gmail.com') || (msgUserId === 'u_1790196636099_622dc736') || (msgUserId === 'admin_1') || (m.badge === 'Admin' && (m.username === 'nabil' || m.username === 'MusifyStar Official' || msgUserId === 'u_1790196636099_622dc736'));
-                var displayUsername = isMsgAdmin ? 'MusifyStar Official' : (m.username || 'Musisi');
+                var displayUsername = (isMe && u && u.username) ? u.username : (m.username || (isMsgAdmin ? 'MusifyStar Official' : 'Musisi'));
                 var avatarColor = isMsgAdmin ? 'from-slate-700 to-slate-900 border border-slate-600/60' : (m.avatarColor || 'from-slate-700 to-slate-800');
                 var initial = isMsgAdmin ? 'M' : (displayUsername.charAt(0).toUpperCase());
                 var timeStr = GlobalChat.formatTime(m.createdAt);
-
-                // Admin Centang Biru Badge: Admin ✅
-                var badgeHtml = isMsgAdmin ? GlobalChat.getAdminBlueCheckmarkHTML() : '';
 
                 // Resolve avatar and border (if isMe, also fall back to current logged in user state)
                 var userAvatar = m.avatar || m.avatar_url || (isMe ? (u.avatar || '') : '');
@@ -397,8 +451,13 @@
                 var userVipTier = m.vipTier || m.vip_tier || (isMe ? (u.vipTier || '') : '');
                 var userVipExpires = m.vipExpiresAt || m.vip_expires_at || (isMe ? (u.vipExpiresAt || 0) : 0);
 
-                // Border badge beside username
-                var borderBadgeHtml = GlobalChat.getBorderBadgeHTML(userBorderName, userBorderUrl, userIsVip);
+                // Resolve Badges Sequence: [Admin Checkmark (Admin Only)] [VIP Badge (If VIP Active)] [Elite Rank Badge] [Border/Immortal Badge]
+                var userBadgesHtml = GlobalChat.getUserBadgesHTML({
+                    isAdmin: isMsgAdmin,
+                    isVip: userIsVip,
+                    borderName: userBorderName,
+                    borderUrl: userBorderUrl
+                });
 
                 // Avatar with border element
                 var avatarHtml = GlobalChat.renderAvatarWithBorder({
@@ -436,12 +495,13 @@
                     return `
                     <div class="flex justify-end items-end gap-3.5 sm:gap-4 w-full group my-3 sm:my-3.5 pl-6 sm:pl-14">
                         <!-- Dark Obsidian Outgoing Bubble -->
-                        <div class="relative max-w-[78%] sm:max-w-[70%] bg-[#222834] border border-slate-700/70 text-slate-100 rounded-2xl px-4 py-2.5 shadow-md shadow-black/40">
+                        <div class="relative max-w-[85%] sm:max-w-[75%] bg-[#222834] border border-slate-700/70 text-slate-100 rounded-2xl px-4 py-2.5 shadow-md shadow-black/40">
                             <!-- Header Nama & Border Badge (Clickable to view own profile preview) -->
-                            <div class="flex items-center justify-end gap-1.5 mb-1.5 select-none flex-wrap cursor-pointer" onclick="${openProfileJs}" title="Klik untuk lihat tampilan profil & border Anda">
-                                <span class="text-xs font-semibold text-slate-200 hover:text-white transition-colors tracking-tight">${GlobalChat.escapeHtml(displayUsername)}</span>
-                                ${badgeHtml}
-                                ${borderBadgeHtml}
+                            <div class="flex items-center justify-between gap-2 mb-1.5 select-none cursor-pointer" onclick="${openProfileJs}" title="Klik untuk lihat tampilan profil & border Anda">
+                                <span class="text-xs font-semibold text-slate-200 hover:text-white transition-colors tracking-tight truncate max-w-[130px] sm:max-w-[170px]">${GlobalChat.escapeHtml(displayUsername)}</span>
+                                <div class="flex items-center gap-1 shrink-0 flex-nowrap overflow-x-auto hide-scrollbar">
+                                    ${userBadgesHtml}
+                                </div>
                             </div>
 
                             <!-- Message text -->
@@ -473,12 +533,13 @@
                     </div>
 
                     <!-- Dark Obsidian Incoming Bubble -->
-                    <div class="relative max-w-[78%] sm:max-w-[70%] bg-[#161a22] border border-slate-800 text-slate-200 rounded-2xl px-4 py-2.5 shadow-md shadow-black/40">
+                    <div class="relative max-w-[85%] sm:max-w-[75%] bg-[#161a22] border border-slate-800 text-slate-200 rounded-2xl px-4 py-2.5 shadow-md shadow-black/40">
                         <!-- Header Nama Pengirim & Admin Centang Biru & Border Badge -->
-                        <div class="flex items-center gap-1.5 mb-1.5 select-none flex-wrap cursor-pointer" onclick="${openProfileJs}" title="Klik untuk lihat profil & border ${GlobalChat.escapeHtml(displayUsername)}">
-                            <span class="text-xs font-semibold text-slate-200 hover:text-amber-300 transition-colors tracking-tight">${GlobalChat.escapeHtml(displayUsername)}</span>
-                            ${badgeHtml}
-                            ${borderBadgeHtml}
+                        <div class="flex items-center justify-between gap-2 mb-1.5 select-none cursor-pointer" onclick="${openProfileJs}" title="Klik untuk lihat profil & border ${GlobalChat.escapeHtml(displayUsername)}">
+                            <span class="text-xs font-semibold text-slate-200 hover:text-amber-300 transition-colors tracking-tight truncate max-w-[130px] sm:max-w-[170px]">${GlobalChat.escapeHtml(displayUsername)}</span>
+                            <div class="flex items-center gap-1 shrink-0 flex-nowrap overflow-x-auto hide-scrollbar">
+                                ${userBadgesHtml}
+                            </div>
                         </div>
 
                         <!-- Isi Pesan -->
@@ -540,7 +601,7 @@
             var myId = String(u.id || u.userId || '');
             var myEmail = (u.email || u.rawEmail || '').toLowerCase().trim();
             var isMasterAdmin = (myEmail === 'jrnabil570@gmail.com' || myId === 'u_1790196636099_622dc736');
-            var myUsername = isMasterAdmin ? 'MusifyStar Official' : (u.username || 'Musisi');
+            var myUsername = u.username || (isMasterAdmin ? 'MusifyStar Official' : 'Musisi');
 
             // Only pass admin token if user is actually Master Admin
             var adminToken = '';
@@ -818,9 +879,10 @@
                     <span>${GlobalChat.escapeHtml(borderName)}</span>
                 </span>`;
             } else if (isVip) {
-                return `
-                <span class="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 text-[9px] font-bold font-mono select-none">
-                    <i data-lucide="crown" class="w-2.5 h-2.5"></i> VIP
+                return (typeof Auth !== 'undefined' && Auth.getVipBadgeHTML) ? Auth.getVipBadgeHTML('text-[8.5px] px-1.5 py-0.2') : `
+                <span class="inline-flex items-center gap-1 px-1.5 py-0.2 rounded-full bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 text-black font-extrabold text-[8.5px] shadow-[0_0_8px_rgba(245,158,11,0.4)] border border-amber-300/50 select-none">
+                    <svg class="w-2.5 h-2.5 shrink-0 fill-black text-black" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.3 8.87l5.378-2.689a.5.5 0 0 1 .7.574l-2.002 11.01a1 1 0 0 1-.985.821H5.609a1 1 0 0 1-.985-.821L2.622 6.755a.5.5 0 0 1 .7-.574l5.378 2.689z"/></svg>
+                    <span>VIP</span>
                 </span>`;
             }
             return '';
@@ -961,6 +1023,22 @@
 
     // Expose GlobalChat
     window.GlobalChat = GlobalChat;
+
+    // Listen for real-time user profile updates (Username, Avatar, Border)
+    window.addEventListener('musifystar:user_profile_updated', function(e) {
+        if (GlobalChat.isOpen) {
+            var u = (e && e.detail && e.detail.user) || GlobalChat.getCurrentUser();
+            var bottomBar = document.getElementById('global-chat-bottom-bar');
+            if (bottomBar && u) {
+                var myId = String(u.id || u.userId || '');
+                var myEmail = (u.email || u.rawEmail || '').toLowerCase().trim();
+                var isMasterAdmin = (myEmail === 'jrnabil570@gmail.com' || myId === 'u_1790196636099_622dc736');
+                bottomBar.innerHTML = GlobalChat.renderBottomBar(u, isMasterAdmin);
+            }
+            // Re-render messages to reflect name change on own messages
+            GlobalChat.renderMessagesList(GlobalChat.messages);
+        }
+    });
 
     // Periodically poll unread count when window is idle (every 60s)
     setInterval(function() {

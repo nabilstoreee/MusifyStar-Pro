@@ -11,10 +11,8 @@
         loading: false,
         pollTimer: null,
 
-        // Resolve border for any leaderboard user in real-time
-        // If the item represents current logged in user, always mirror Auth.currentUser in real time
-        getUserDisplayBorder(item, myUser) {
-            if (!item) return { borderUrl: '', borderName: '', isMe: false };
+        getUserDisplayInfo(item, myUser) {
+            if (!item) return { username: '', avatar: '', borderUrl: '', borderName: '', isVip: false, equippedBadge: '', equippedBadgeTitle: '', equippedBadgeIcon: '', equippedBadgeColor: '', isMe: false };
             myUser = myUser || ((typeof Auth !== 'undefined' && Auth.currentUser) ? Auth.currentUser : null);
             var isMe = false;
             if (myUser) {
@@ -27,31 +25,60 @@
                 }
             }
 
-            if (isMe) {
+            if (isMe && myUser) {
+                var isVipExpired = myUser.vipExpiresAt && Date.now() > myUser.vipExpiresAt;
+                var isMasterAdmin = ((myUser.email || '').toLowerCase().trim() === 'jrnabil570@gmail.com') || (myUser.username === 'nabil');
+                var isUserVip = isMasterAdmin || (Boolean(myUser.isPremium || myUser.is_premium || (myUser.vipTier && myUser.vipTier !== 'none')) && !isVipExpired);
+
                 var url = (typeof Auth !== 'undefined' && typeof Auth.getBorderUrl === 'function')
                     ? Auth.getBorderUrl(myUser)
                     : (myUser.borderUrl || '');
                 var name = (typeof Auth !== 'undefined' && typeof Auth.getBorderName === 'function')
                     ? Auth.getBorderName(myUser)
                     : (myUser.borderName || '');
-                return { borderUrl: url || '', borderName: name || '', isMe: true };
+
+                return {
+                    username: myUser.username || item.username || '',
+                    avatar: myUser.avatar || item.avatar || '/logo.png',
+                    borderUrl: url || '',
+                    borderName: name || '',
+                    isVip: isUserVip,
+                    equippedBadge: myUser.equippedBadge || item.equippedBadge || '',
+                    equippedBadgeTitle: myUser.equippedBadgeTitle || item.equippedBadgeTitle || '',
+                    equippedBadgeIcon: myUser.equippedBadgeIcon || item.equippedBadgeIcon || '',
+                    equippedBadgeColor: myUser.equippedBadgeColor || item.equippedBadgeColor || '',
+                    isMe: true
+                };
             }
 
+            var itemVip = Boolean(item.isVip || item.is_vip || (item.vipTier && item.vipTier !== 'none'));
+
             return {
+                username: item.username || '',
+                avatar: item.avatar || '/logo.png',
                 borderUrl: item.borderUrl || '',
                 borderName: item.borderName || '',
+                isVip: itemVip,
+                equippedBadge: item.equippedBadge || '',
+                equippedBadgeTitle: item.equippedBadgeTitle || '',
+                equippedBadgeIcon: item.equippedBadgeIcon || '',
+                equippedBadgeColor: item.equippedBadgeColor || '',
                 isMe: false
             };
         },
 
-        // Real-time handler called when user equips or changes border
-        onUserBorderChanged(newBorderUrl, newBorderName) {
-            var myUser = (typeof Auth !== 'undefined' && Auth.currentUser) ? Auth.currentUser : null;
-            if (!myUser) return;
-            var myUname = (myUser.username || '').toLowerCase().trim();
-            var myId = String(myUser.id || '').trim();
+        // Resolve border for any leaderboard user in real-time
+        getUserDisplayBorder(item, myUser) {
+            var info = this.getUserDisplayInfo(item, myUser);
+            return { borderUrl: info.borderUrl, borderName: info.borderName, isMe: info.isMe };
+        },
 
-            // 1. Update in-memory cachedData across all timeframes instantly
+        // Real-time handler called when user profile (name, avatar, badges) changes
+        onUserProfileUpdated(user) {
+            if (!user) return;
+            var myUname = (user.username || '').toLowerCase().trim();
+            var myId = String(user.id || '').trim();
+
             if (this.cachedData && typeof this.cachedData === 'object') {
                 var self = this;
                 Object.keys(this.cachedData).forEach(function(tf) {
@@ -61,19 +88,31 @@
                             var match = (it.id && myId && String(it.id).trim() === myId) ||
                                         (it.username && (it.username || '').toLowerCase().trim() === myUname);
                             if (match) {
-                                it.borderUrl = newBorderUrl || '';
-                                it.borderName = newBorderName || '';
-                                it.border = (newBorderUrl && myUser.border) ? myUser.border : '';
+                                it.username = user.username;
+                                it.avatar = user.avatar;
+                                it.borderUrl = user.borderUrl || '';
+                                it.borderName = user.borderName || '';
+                                it.isVip = user.isVip;
+                                it.equippedBadge = user.equippedBadge || '';
+                                it.equippedBadgeTitle = user.equippedBadgeTitle || '';
+                                it.equippedBadgeIcon = user.equippedBadgeIcon || '';
+                                it.equippedBadgeColor = user.equippedBadgeColor || '';
                             }
                         });
                     }
                 });
             }
 
-            // 2. Direct DOM re-render if modal is currently open for 0-latency live change
             if (document.getElementById('global-stats-modal')) {
                 this.renderCurrentTab();
             }
+        },
+
+        // Real-time handler called when user equips or changes border
+        onUserBorderChanged(newBorderUrl, newBorderName) {
+            var myUser = (typeof Auth !== 'undefined' && Auth.currentUser) ? Auth.currentUser : null;
+            if (!myUser) return;
+            this.onUserProfileUpdated(myUser);
         },
 
         startLivePolling() {
@@ -86,12 +125,16 @@
                     return;
                 }
                 // Background silent poll without disrupting scroll or user interaction
-                self.fetchData(self.timeframe, true).then(function() {
-                    if (document.getElementById('global-stats-modal')) {
-                        self.renderCurrentTab();
+                self.fetchData(self.timeframe, true, true).then(function(newData) {
+                    if (document.getElementById('global-stats-modal') && newData) {
+                        var sig = JSON.stringify(newData.leaderboard || []);
+                        if (self.lastLeaderboardSig !== sig) {
+                            self.lastLeaderboardSig = sig;
+                            self.renderCurrentTab();
+                        }
                     }
                 });
-            }, 8000);
+            }, 12000);
         },
 
         stopLivePolling() {
@@ -101,14 +144,14 @@
             }
         },
 
-        async fetchData(timeframe, force) {
+        async fetchData(timeframe, force, isSilent) {
             timeframe = timeframe || this.timeframe || 'all';
             if (!force && this.cachedData[timeframe]) {
                 return this.cachedData[timeframe];
             }
 
             this.loading = true;
-            this.updateLoadingState(true);
+            if (!isSilent) this.updateLoadingState(true);
 
             try {
                 var res = await fetch('/api/global-stats?timeframe=' + encodeURIComponent(timeframe) + '&t=' + Date.now());
@@ -116,7 +159,7 @@
                 if (data && data.status) {
                     this.cachedData[timeframe] = data;
                     this.loading = false;
-                    this.updateLoadingState(false);
+                    if (!isSilent) this.updateLoadingState(false);
                     return data;
                 }
             } catch(e) {
@@ -124,7 +167,7 @@
             }
 
             this.loading = false;
-            this.updateLoadingState(false);
+            if (!isSilent) this.updateLoadingState(false);
             return this.cachedData[timeframe] || null;
         },
 
@@ -193,7 +236,7 @@
                 </div>
 
                 <!-- Full Page Scrollable Body -->
-                <div class="flex-1 overflow-y-auto overscroll-contain hide-scrollbar p-4 sm:p-6 max-w-2xl mx-auto w-full pb-32">
+                <div id="gs-scroll-container" class="flex-1 overflow-y-auto overscroll-contain hide-scrollbar p-4 sm:p-6 max-w-2xl mx-auto w-full pb-32">
                     <div id="global-stats-content" class="space-y-4">
                         <div class="py-12 flex flex-col items-center justify-center gap-3 text-white/60">
                             <i data-lucide="loader-2" class="w-7 h-7 text-amber-400 animate-spin"></i>
@@ -208,7 +251,8 @@
                 try { window.lucide.createIcons(); } catch(e){}
             }
 
-            this.loadAndRender();
+            this.cachedData = {};
+            this.loadAndRender(true);
             this.startLivePolling();
         },
 
@@ -240,7 +284,7 @@
 
         setTimeframe(tf) {
             this.timeframe = tf;
-            this.loadAndRender();
+            this.loadAndRender(true);
         },
 
         async refreshData() {
@@ -248,8 +292,8 @@
             this.renderCurrentTab();
         },
 
-        async loadAndRender() {
-            var data = await this.fetchData(this.timeframe);
+        async loadAndRender(force) {
+            var data = await this.fetchData(this.timeframe, force);
             if (!data) {
                 var container = document.getElementById('global-stats-content');
                 if (container) {
@@ -283,10 +327,17 @@
             var data = this.cachedData[this.timeframe];
             if (!data) return;
 
+            var scrollEl = document.getElementById('gs-scroll-container');
+            var savedScroll = scrollEl ? scrollEl.scrollTop : 0;
+
             if (this.activeTab === 'songs') {
                 container.innerHTML = this.getTopSongsHTML(data);
             } else {
                 container.innerHTML = this.getLeaderboardHTML(data);
+            }
+
+            if (scrollEl) {
+                scrollEl.scrollTop = savedScroll;
             }
 
             if (window.lucide && typeof window.lucide.createIcons === 'function') {
@@ -330,11 +381,7 @@
                 var myRankNum = myRankItem ? ('#' + myRankItem.rank) : '#-';
                 var myDuration = myRankItem ? myRankItem.formattedDuration : '0 Menit';
                 var myPlays = myRankItem ? myRankItem.totalPlays : 0;
-                var myAvatar = myUser.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(myUser.username)}`;
-                // Real-time border resolution for current logged-in user
-                var myBorder = this.getUserDisplayBorder(myRankItem || myUser, myUser);
-                var myBorderUrl = myBorder.borderUrl || '';
-                var myBorderName = myBorder.borderName || '';
+                var myInfo = this.getUserDisplayInfo(myRankItem || myUser, myUser);
 
                 myRankCard = `
                     <div class="p-3.5 rounded-2xl bg-gradient-to-r from-sky-500/15 via-indigo-500/15 to-purple-500/15 border border-sky-400/30 flex items-center justify-between gap-3 shadow-lg">
@@ -342,19 +389,23 @@
                             <!-- Avatar with Border -->
                             <div class="relative w-12 h-12 flex items-center justify-center shrink-0 mr-1.5">
                                 <div class="w-10 h-10 rounded-full overflow-hidden bg-black/80 ring-1 ring-white/20">
-                                    <img src="${myAvatar}" class="w-full h-full object-cover rounded-full" onerror="this.src='/logo.png'" />
+                                    <img src="${myInfo.avatar}" class="w-full h-full object-cover rounded-full" onerror="this.src='/logo.png'" />
                                 </div>
-                                ${myBorderUrl ? `
-                                <img src="${myBorderUrl}" class="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[66px] h-[66px] max-w-none object-contain z-10 select-none drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
+                                ${myInfo.borderUrl ? `
+                                <img src="${myInfo.borderUrl}" class="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[66px] h-[66px] max-w-none object-contain z-10 select-none drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
                                 ` : ''}
                             </div>
                             <div class="min-w-0 flex-1 relative z-20">
-                                <div class="flex items-center gap-1.5">
+                                <div class="flex items-center gap-1.5 flex-wrap">
                                     <span class="text-[10px] font-mono text-sky-400 uppercase tracking-wider font-bold">Peringkat Kamu</span>
                                     <span class="text-[9px] bg-sky-500/20 text-sky-300 border border-sky-500/30 px-1.5 py-0.2 rounded font-bold">${myRankNum}</span>
-                                    ${myBorderName ? `<span class="text-[9px] bg-amber-400/20 text-amber-300 border border-amber-400/30 px-1.5 py-0.2 rounded font-bold">${myBorderName}</span>` : ''}
+                                    ${myInfo.borderName ? `<span class="text-[9px] bg-amber-400/20 text-amber-300 border border-amber-400/30 px-1.5 py-0.2 rounded font-bold">${myInfo.borderName}</span>` : ''}
                                 </div>
-                                <h4 class="text-white font-black text-xs truncate">@${myUser.username}</h4>
+                                <div class="flex items-center gap-1.5 flex-wrap mt-0.5">
+                                    <h4 class="text-white font-black text-xs truncate">@${myInfo.username}</h4>
+                                    ${myInfo.isVip ? (typeof Auth !== 'undefined' && Auth.getVipBadgeHTML ? Auth.getVipBadgeHTML('text-[8px] px-1.5 py-0.2') : '') : ''}
+                                    ${myInfo.equippedBadgeTitle || myInfo.equippedBadge ? (typeof Auth !== 'undefined' && Auth.getRankBadgePillHTML ? Auth.getRankBadgePillHTML(myInfo.equippedBadge, myInfo.equippedBadgeTitle, myInfo.equippedBadgeIcon, myInfo.equippedBadgeColor) : '') : ''}
+                                </div>
                                 <p class="text-[10px] text-white/60 flex items-center gap-1 mt-0.5">
                                     <i data-lucide="clock" class="w-3 h-3 text-amber-400"></i> ${myDuration} &bull; ${myPlays} lagu
                                 </p>
@@ -391,33 +442,39 @@
                 var second = top3.length > 1 ? top3[1] : null;
                 var third = top3.length > 2 ? top3[2] : null;
 
-                var b1 = first ? this.getUserDisplayBorder(first, myUser) : { borderUrl: '', borderName: '' };
-                var b2 = second ? this.getUserDisplayBorder(second, myUser) : { borderUrl: '', borderName: '' };
-                var b3 = third ? this.getUserDisplayBorder(third, myUser) : { borderUrl: '', borderName: '' };
+                var u1 = first ? this.getUserDisplayInfo(first, myUser) : null;
+                var u2 = second ? this.getUserDisplayInfo(second, myUser) : null;
+                var u3 = third ? this.getUserDisplayInfo(third, myUser) : null;
 
                 podiumHTML = `
                     <div class="pt-2 pb-1">
                         <div class="flex items-end justify-center gap-2 sm:gap-3">
                             
                             <!-- PODIUM #2: Perak (Silver) -->
-                            ${second ? `
+                            ${second && u2 ? `
                             <div class="flex-1 flex flex-col items-center max-w-[130px] sm:max-w-[140px] text-center">
                                 <div class="relative mb-5 sm:mb-6 pt-2">
                                     <div class="relative w-16 h-16 flex items-center justify-center">
                                         <div class="w-13 h-13 rounded-full overflow-hidden bg-black/80 ring-2 ring-slate-400/60 shadow-lg">
-                                            <img src="${second.avatar}" class="w-full h-full object-cover rounded-full" onerror="this.src='/logo.png'" />
+                                            <img src="${u2.avatar}" class="w-full h-full object-cover rounded-full" onerror="this.src='/logo.png'" />
                                         </div>
-                                        ${b2.borderUrl ? `
-                                        <img src="${b2.borderUrl}" class="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[88px] h-[88px] max-w-none object-contain z-10 select-none drop-shadow-[0_0_10px_rgba(203,213,225,0.6)]" />
+                                        ${u2.borderUrl ? `
+                                        <img src="${u2.borderUrl}" class="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[88px] h-[88px] max-w-none object-contain z-10 select-none drop-shadow-[0_0_10px_rgba(203,213,225,0.6)]" />
                                         ` : ''}
                                     </div>
                                     <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-slate-300 text-black font-black text-[10px] flex items-center justify-center shadow-md border border-white">2</span>
                                 </div>
                                 <div class="relative z-20 flex flex-col items-center w-full px-1">
-                                    <h5 class="text-xs font-black text-white truncate w-full flex items-center justify-center gap-1">
-                                        <span>${second.username}</span>
+                                    <h5 class="text-xs font-black text-white truncate w-full text-center">
+                                        ${u2.username}
                                     </h5>
-                                    ${b2.borderName ? `<span class="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-slate-400/20 text-slate-200 border border-slate-400/30 text-[9px] font-bold leading-none shadow-sm">Border: ${b2.borderName}</span>` : ''}
+                                    ${(u2.isVip || u2.equippedBadgeTitle || u2.equippedBadge) ? `
+                                    <div class="mt-1 flex items-center justify-center gap-1 flex-nowrap shrink-0">
+                                        ${u2.isVip ? (typeof Auth !== 'undefined' && Auth.getVipBadgeHTML ? Auth.getVipBadgeHTML() : '') : ''}
+                                        ${u2.equippedBadgeTitle || u2.equippedBadge ? (typeof Auth !== 'undefined' && Auth.getRankBadgePillHTML ? Auth.getRankBadgePillHTML(u2.equippedBadge, u2.equippedBadgeTitle, u2.equippedBadgeIcon, u2.equippedBadgeColor) : '') : ''}
+                                    </div>
+                                    ` : ''}
+                                    ${u2.borderName ? `<span class="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-slate-400/20 text-slate-200 border border-slate-400/30 text-[9px] font-bold leading-none shadow-sm">Border: ${u2.borderName}</span>` : ''}
                                     <span class="text-[10px] text-slate-300 font-mono mt-1 font-bold">${second.formattedDuration}</span>
                                 </div>
                                 <div class="w-full h-14 mt-2 rounded-t-2xl bg-gradient-to-t from-slate-800/80 to-slate-700/50 border-t border-slate-400/40 flex items-center justify-center shadow-inner">
@@ -427,7 +484,7 @@
                             ` : '<div class="flex-1"></div>'}
 
                             <!-- PODIUM #1: Emas (Gold) - Elevated -->
-                            ${first ? `
+                            ${first && u1 ? `
                             <div class="flex-1 flex flex-col items-center max-w-[150px] sm:max-w-[160px] text-center z-10">
                                 <div class="relative mb-6 sm:mb-7 pt-3">
                                     <div class="absolute -top-4 left-1/2 -translate-x-1/2 text-amber-400 animate-bounce">
@@ -435,20 +492,25 @@
                                     </div>
                                     <div class="relative w-20 h-20 flex items-center justify-center">
                                         <div class="w-16 h-16 rounded-full overflow-hidden bg-black/90 ring-2 ring-amber-400 shadow-[0_0_20px_rgba(245,158,11,0.5)]">
-                                            <img src="${first.avatar}" class="w-full h-full object-cover rounded-full" onerror="this.src='/logo.png'" />
+                                            <img src="${u1.avatar}" class="w-full h-full object-cover rounded-full" onerror="this.src='/logo.png'" />
                                         </div>
-                                        ${b1.borderUrl ? `
-                                        <img src="${b1.borderUrl}" class="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[108px] h-[108px] max-w-none object-contain z-10 select-none drop-shadow-[0_0_15px_rgba(245,158,11,0.8)]" />
+                                        ${u1.borderUrl ? `
+                                        <img src="${u1.borderUrl}" class="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[108px] h-[108px] max-w-none object-contain z-10 select-none drop-shadow-[0_0_15px_rgba(245,158,11,0.8)]" />
                                         ` : ''}
                                     </div>
                                     <span class="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-gradient-to-tr from-amber-400 to-yellow-300 text-black font-black text-xs flex items-center justify-center shadow-lg border-2 border-amber-200">1</span>
                                 </div>
                                 <div class="relative z-20 flex flex-col items-center w-full px-1">
-                                    <h5 class="text-sm font-black text-white truncate w-full flex items-center justify-center gap-1">
-                                        <span>${first.username}</span>
-                                        ${first.isVip ? '<i data-lucide="crown" class="w-3 h-3 text-amber-400 inline"></i>' : ''}
+                                    <h5 class="text-sm font-black text-white truncate w-full text-center">
+                                        ${u1.username}
                                     </h5>
-                                    ${b1.borderName ? `<span class="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 text-[9.5px] font-extrabold leading-none shadow-sm">Border: ${b1.borderName}</span>` : ''}
+                                    ${(u1.isVip || u1.equippedBadgeTitle || u1.equippedBadge) ? `
+                                    <div class="mt-1 flex items-center justify-center gap-1 flex-nowrap shrink-0">
+                                        ${u1.isVip ? (typeof Auth !== 'undefined' && Auth.getVipBadgeHTML ? Auth.getVipBadgeHTML() : '') : ''}
+                                        ${u1.equippedBadgeTitle || u1.equippedBadge ? (typeof Auth !== 'undefined' && Auth.getRankBadgePillHTML ? Auth.getRankBadgePillHTML(u1.equippedBadge, u1.equippedBadgeTitle, u1.equippedBadgeIcon, u1.equippedBadgeColor) : '') : ''}
+                                    </div>
+                                    ` : ''}
+                                    ${u1.borderName ? `<span class="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 text-[9.5px] font-extrabold leading-none shadow-sm">Border: ${u1.borderName}</span>` : ''}
                                     <span class="text-[11px] text-amber-300 font-mono mt-1 font-black">${first.formattedDuration}</span>
                                 </div>
                                 <div class="w-full h-20 mt-2 rounded-t-2xl bg-gradient-to-t from-amber-950/80 via-amber-800/40 to-amber-600/40 border-t-2 border-amber-400 flex flex-col items-center justify-center shadow-[0_0_25px_rgba(245,158,11,0.2)]">
@@ -459,24 +521,30 @@
                             ` : '<div class="flex-1"></div>'}
 
                             <!-- PODIUM #3: Perunggu (Bronze) -->
-                            ${third ? `
+                            ${third && u3 ? `
                             <div class="flex-1 flex flex-col items-center max-w-[130px] sm:max-w-[140px] text-center">
                                 <div class="relative mb-5 sm:mb-6 pt-2">
                                     <div class="relative w-16 h-16 flex items-center justify-center">
                                         <div class="w-13 h-13 rounded-full overflow-hidden bg-black/80 ring-2 ring-amber-700/60 shadow-lg">
-                                            <img src="${third.avatar}" class="w-full h-full object-cover rounded-full" onerror="this.src='/logo.png'" />
+                                            <img src="${u3.avatar}" class="w-full h-full object-cover rounded-full" onerror="this.src='/logo.png'" />
                                         </div>
-                                        ${b3.borderUrl ? `
-                                        <img src="${b3.borderUrl}" class="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[88px] h-[88px] max-w-none object-contain z-10 select-none drop-shadow-[0_0_10px_rgba(180,83,9,0.5)]" />
+                                        ${u3.borderUrl ? `
+                                        <img src="${u3.borderUrl}" class="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[88px] h-[88px] max-w-none object-contain z-10 select-none drop-shadow-[0_0_10px_rgba(180,83,9,0.5)]" />
                                         ` : ''}
                                     </div>
                                     <span class="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-amber-700 text-white font-black text-[10px] flex items-center justify-center shadow-md border border-amber-500">3</span>
                                 </div>
                                 <div class="relative z-20 flex flex-col items-center w-full px-1">
-                                    <h5 class="text-xs font-black text-white truncate w-full flex items-center justify-center gap-1">
-                                        <span>${third.username}</span>
+                                    <h5 class="text-xs font-black text-white truncate w-full text-center">
+                                        ${u3.username}
                                     </h5>
-                                    ${b3.borderName ? `<span class="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-700/20 text-amber-300 border border-amber-700/30 text-[9px] font-bold leading-none shadow-sm">Border: ${b3.borderName}</span>` : ''}
+                                    ${(u3.isVip || u3.equippedBadgeTitle || u3.equippedBadge) ? `
+                                    <div class="mt-1 flex items-center justify-center gap-1 flex-nowrap shrink-0">
+                                        ${u3.isVip ? (typeof Auth !== 'undefined' && Auth.getVipBadgeHTML ? Auth.getVipBadgeHTML() : '') : ''}
+                                        ${u3.equippedBadgeTitle || u3.equippedBadge ? (typeof Auth !== 'undefined' && Auth.getRankBadgePillHTML ? Auth.getRankBadgePillHTML(u3.equippedBadge, u3.equippedBadgeTitle, u3.equippedBadgeIcon, u3.equippedBadgeColor) : '') : ''}
+                                    </div>
+                                    ` : ''}
+                                    ${u3.borderName ? `<span class="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-700/20 text-amber-300 border border-amber-700/30 text-[9px] font-bold leading-none shadow-sm">Border: ${u3.borderName}</span>` : ''}
                                     <span class="text-[10px] text-amber-400 font-mono mt-1 font-bold">${third.formattedDuration}</span>
                                 </div>
                                 <div class="w-full h-11 mt-2 rounded-t-2xl bg-gradient-to-t from-stone-900/80 to-amber-900/40 border-t border-amber-700/50 flex items-center justify-center shadow-inner">
@@ -501,30 +569,31 @@
                             <span>Total Durasi</span>
                         </div>
                         ${rest.map(function(item) {
-                            var bi = self.getUserDisplayBorder(item, myUser);
+                            var ui = self.getUserDisplayInfo(item, myUser);
                             return `
-                            <div class="p-2.5 rounded-2xl ${bi.isMe ? 'bg-sky-500/10 border-sky-400/40 shadow-md' : 'bg-white/[0.03] hover:bg-white/[0.07] border-white/10'} border flex items-center justify-between gap-3 transition-all">
+                            <div class="p-2.5 rounded-2xl ${ui.isMe ? 'bg-sky-500/10 border-sky-400/40 shadow-md' : 'bg-white/[0.03] hover:bg-white/[0.07] border-white/10'} border flex items-center justify-between gap-3 transition-all">
                                 <div class="flex items-center gap-3 min-w-0">
                                     <span class="w-6 text-center text-xs font-black text-white/50 font-mono">#${item.rank}</span>
                                     
                                     <!-- Avatar with Border Frame -->
                                     <div class="relative w-11 h-11 flex items-center justify-center shrink-0 mr-1">
                                         <div class="w-9 h-9 rounded-full overflow-hidden bg-black/80 ring-1 ring-white/15">
-                                            <img src="${item.avatar}" class="w-full h-full object-cover rounded-full" onerror="this.src='/logo.png'" />
+                                            <img src="${ui.avatar}" class="w-full h-full object-cover rounded-full" onerror="this.src='/logo.png'" />
                                         </div>
-                                        ${bi.borderUrl ? `
-                                        <img src="${bi.borderUrl}" class="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60px] h-[60px] max-w-none object-contain z-10 select-none drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
+                                        ${ui.borderUrl ? `
+                                        <img src="${ui.borderUrl}" class="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60px] h-[60px] max-w-none object-contain z-10 select-none drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
                                         ` : ''}
                                     </div>
 
                                     <div class="min-w-0 flex-1 relative z-20">
-                                        <div class="flex items-center gap-1.5">
-                                            <h5 class="text-white font-bold text-xs truncate max-w-[140px]">${item.username}</h5>
-                                            ${item.isVip ? '<span class="text-[8px] bg-amber-400/20 text-amber-300 border border-amber-400/30 px-1 py-0.2 rounded font-black font-mono">VIP</span>' : ''}
+                                        <div class="flex items-center gap-1.5 flex-wrap">
+                                            <h5 class="text-white font-bold text-xs truncate max-w-[140px]">${ui.username}</h5>
+                                            ${ui.isVip ? ((typeof Auth !== 'undefined' && Auth.getVipBadgeHTML) ? Auth.getVipBadgeHTML('text-[8px] px-1.5 py-0.2') : '<span class="text-[8px] bg-amber-400/20 text-amber-300 border border-amber-400/30 px-1 py-0.2 rounded font-black font-mono">VIP</span>') : ''}
+                                            ${ui.equippedBadgeTitle || ui.equippedBadge ? (typeof Auth !== 'undefined' && Auth.getRankBadgePillHTML ? Auth.getRankBadgePillHTML(ui.equippedBadge, ui.equippedBadgeTitle, ui.equippedBadgeIcon, ui.equippedBadgeColor) : `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9.5px] font-bold border" style="border-color: ${ui.equippedBadgeColor || '#38bdf8'}; color: ${ui.equippedBadgeColor || '#38bdf8'};">${ui.equippedBadgeTitle}</span>`) : ''}
                                             ${item.isOnline ? '<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" title="Sedang Mendengarkan"></span>' : ''}
                                         </div>
                                         <div class="flex items-center gap-1.5 text-[10px] text-white/50 truncate">
-                                            ${bi.borderName ? `<span class="text-amber-300 font-medium">Border: ${bi.borderName}</span> &bull; ` : ''}
+                                            ${ui.borderName ? `<span class="text-amber-300 font-medium">Border: ${ui.borderName}</span> &bull; ` : ''}
                                             <span>${item.totalPlays} lagu</span>
                                         </div>
                                     </div>
@@ -719,7 +788,21 @@
         }
     };
 
-    // Auto-listen to Real-time Border & User Changes across the app
+    // Auto-listen to Real-time Profile, Border & User Changes across the app
+    window.addEventListener('musifystar:user_profile_updated', function(e) {
+        if (typeof GlobalStats !== 'undefined' && typeof GlobalStats.onUserProfileUpdated === 'function') {
+            var u = (e && e.detail && e.detail.user) || (typeof Auth !== 'undefined' ? Auth.currentUser : null);
+            if (u) GlobalStats.onUserProfileUpdated(u);
+        }
+    });
+
+    window.addEventListener('musifystar:user_badge_updated', function(e) {
+        if (typeof GlobalStats !== 'undefined' && typeof GlobalStats.onUserProfileUpdated === 'function') {
+            var u = (e && e.detail && e.detail.user) || (typeof Auth !== 'undefined' ? Auth.currentUser : null);
+            if (u) GlobalStats.onUserProfileUpdated(u);
+        }
+    });
+
     window.addEventListener('musifystar:user_border_updated', function(e) {
         if (typeof GlobalStats !== 'undefined' && typeof GlobalStats.onUserBorderChanged === 'function') {
             var d = (e && e.detail) || {};

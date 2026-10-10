@@ -616,9 +616,9 @@ var Profile = {
             }
         } catch(e) {}
 
-        var rawQris = config && config.qrisUrl;
-        var isCustomQrisUploaded = rawQris && rawQris !== '/qris.png' && !rawQris.includes('placeholder');
-        var qrisUrl = isCustomQrisUploaded ? rawQris : '';
+        var rawQris = (config && config.qrisUrl) ? config.qrisUrl : '/qris.png';
+        if (!rawQris || rawQris.includes('placeholder')) rawQris = '/qris.png';
+        var qrisUrl = rawQris;
         var qrisHolder = (config && config.qrisHolder) || 'NABIL (MusifyStar Official)';
         var pkg = selectedPackage || { name: 'Paket Bulanan VIP', duration: '30 Hari', price: 19000 };
         var priceFmt = Number(pkg.price).toLocaleString('id-ID');
@@ -657,23 +657,11 @@ var Profile = {
                 </span>
             </div>
 
-            <!-- Foto QRIS Penuh / Kosong jika admin belum menambahkan -->
+            <!-- Foto QRIS Penuh -->
             <div class="flex flex-col items-center justify-center w-full my-1">
-                ${isCustomQrisUploaded ? `
                 <div class="w-full max-w-md flex items-center justify-center overflow-hidden rounded-2xl bg-black/40 border border-white/10 shadow-2xl relative p-2">
-                    <img id="qris-payment-image" src="${qrisUrl}" class="w-full h-auto max-h-[520px] object-contain select-none rounded-2xl block" alt="Barcode QRIS MusifyStar" onerror="this.parentElement.innerHTML='<p class=\\'text-xs text-rose-400 p-4 text-center\\'>Gagal memuat barcode QRIS</p>'">
+                    <img id="qris-payment-image" src="${qrisUrl}" class="w-full h-auto max-h-[520px] object-contain select-none rounded-2xl block" alt="Barcode QRIS MusifyStar" onerror="if(this.src && !this.src.endsWith('/qris.png')){this.src='/qris.png';}else{this.onerror=null;this.parentElement.innerHTML='<p class=\\'text-xs text-rose-400 p-4 text-center\\'>Gagal memuat barcode QRIS</p>';}">
                 </div>
-                ` : `
-                <div class="w-full max-w-md p-6 bg-black/40 border border-dashed border-amber-400/30 rounded-2xl text-center space-y-2">
-                    <i data-lucide="image-off" class="w-10 h-10 text-amber-400 mx-auto"></i>
-                    <p class="text-xs font-bold text-white">Foto / Barcode QRIS Belum Ditambahkan oleh Admin</p>
-                    <p class="text-[10px] text-white/50">Admin belum menambahkan foto QRIS. Silakan hubungi Admin via WhatsApp untuk melakukan pembayaran & konfirmasi VIP.</p>
-                    <button type="button" onclick="Profile.openWhatsAppSupport('Halo Admin MusifyStar, saya ingin bayar paket ' + encodeURIComponent('${pkg.name}') + ' (Rp ${priceFmt})')" class="mt-2 py-2 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-black font-extrabold text-xs inline-flex items-center gap-1.5 transition active:scale-95 cursor-pointer shadow-md">
-                        <i data-lucide="message-circle" class="w-4 h-4"></i>
-                        <span>Chat Admin via WhatsApp</span>
-                    </button>
-                </div>
-                `}
             </div>
 
             <!-- Tombol Unduh Barcode QRIS -->
@@ -904,24 +892,23 @@ var Profile = {
             <div class="flex-1 overflow-y-auto px-5 pb-5 space-y-3.5 hide-scrollbar">
                 <!-- PANEL 1: QRIS VIEW -->
                 <div id="don-view-qris" class="space-y-3">
-                    ${(config.qrisUrl && config.qrisUrl !== '/qris.png' && !config.qrisUrl.includes('placeholder')) ? `
                     <div class="w-full flex items-center justify-center overflow-hidden rounded-2xl select-none bg-white/5 p-2 border border-white/10" 
                          style="-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;"
                          oncontextmenu="return false;">
                         <img id="qris-img-display" 
-                             src="${config.qrisUrl}" 
+                             src="${config.qrisUrl || '/qris.png'}" 
                              alt="QRIS MusifyStar" 
                              draggable="false"
                              oncontextmenu="return false;"
                              class="w-full h-auto max-h-[46vh] object-contain rounded-xl shadow-2xl pointer-events-none select-none" 
                              style="-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;pointer-events:none;"
-                             onerror="this.parentElement.innerHTML='<p class=\\'text-xs text-rose-400 p-4 text-center\\'>Gagal memuat QRIS</p>'" />
+                             onerror="if(this.src && !this.src.endsWith('/qris.png')){this.src='/qris.png';}else{this.onerror=null;this.parentElement.innerHTML='<p class=\\'text-xs text-rose-400 p-4 text-center\\'>Gagal memuat QRIS</p>';}" />
                     </div>
                     <p class="text-[11px] text-white/50 text-center leading-relaxed">
                         Scan dengan GoPay, OVO, DANA, BCA, BRI, Mandiri, BNI, ShopeePay & semua bank / mobile banking di Indonesia.
                     </p>
                     <div class="grid grid-cols-2 gap-2 pt-1">
-                        <button id="btn-save-qris" onclick="Profile.downloadQRIS('${config.qrisUrl}', '${config.qrisFilename || 'QRIS-MusifyStar-Nabil.png'}')" class="py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-500 to-emerald-500 hover:opacity-95 active:scale-95 text-black text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-lg shadow-amber-500/20 cursor-pointer text-center">
+                        <button id="btn-save-qris" onclick="Profile.downloadQRIS('${config.qrisUrl || '/qris.png'}', '${config.qrisFilename || 'QRIS-MusifyStar-Nabil.png'}')" class="py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-500 to-emerald-500 hover:opacity-95 active:scale-95 text-black text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-lg shadow-amber-500/20 cursor-pointer text-center">
                             <i data-lucide="download" class="w-4 h-4"></i>
                             <span>Simpan QRIS</span>
                         </button>
@@ -930,17 +917,6 @@ var Profile = {
                             <span>Tutup</span>
                         </button>
                     </div>
-                    ` : `
-                    <div class="p-6 bg-black/40 border border-dashed border-amber-400/30 rounded-2xl text-center space-y-2">
-                        <i data-lucide="image-off" class="w-10 h-10 text-amber-400 mx-auto"></i>
-                        <p class="text-xs font-bold text-white">Foto / Barcode QRIS Belum Ditambahkan oleh Admin</p>
-                        <p class="text-[10px] text-white/50">Admin belum menambahkan foto QRIS donasi. Silakan gunakan Rekening & E-Wallet atau hubungi Admin via WhatsApp.</p>
-                        <button type="button" onclick="Profile.openWhatsAppSupport('Halo Admin MusifyStar, saya ingin melakukan donasi pengembang.')" class="mt-2 py-2 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-black font-extrabold text-xs inline-flex items-center gap-1.5 transition active:scale-95 cursor-pointer shadow-md">
-                            <i data-lucide="message-circle" class="w-4 h-4"></i>
-                            <span>Hubungi Admin via WhatsApp</span>
-                        </button>
-                    </div>
-                    `}
                 </div>
 
                 <!-- PANEL 2: REKENING & E-WALLET VIEW -->
@@ -9532,6 +9508,12 @@ var Profile = {
         var container = gid('admin-globalstats-container');
         if (!container) return;
 
+        var activeEl = document.activeElement;
+        var isSearchFocused = activeEl && activeEl.id === 'admin-lb-search';
+        var selStart = isSearchFocused ? activeEl.selectionStart : null;
+        var selEnd = isSearchFocused ? activeEl.selectionEnd : null;
+        var savedScroll = container.scrollTop;
+
         var lb = Profile.cachedAdminLeaderboard || [];
         var totalUsers = lb.length;
         var top1 = lb.length > 0 ? lb[0] : null;
@@ -9703,6 +9685,18 @@ var Profile = {
         `;
 
         container.innerHTML = html;
+        container.scrollTop = savedScroll;
+
+        if (isSearchFocused) {
+            var searchEl = gid('admin-lb-search');
+            if (searchEl) {
+                searchEl.focus();
+                if (selStart !== null && selEnd !== null) {
+                    try { searchEl.setSelectionRange(selStart, selEnd); } catch(e){}
+                }
+            }
+        }
+
         if (window.lucide) lucide.createIcons();
     },
 
@@ -9717,46 +9711,143 @@ var Profile = {
     },
 
     adminEditUserStats(username, currentSeconds, currentPlays) {
-        var currentMinutes = Math.round(currentSeconds / 60);
-        var promptMsg = `Ubah data statistik untuk @${username}:\n\nFormat: [Durasi Menit],[Total Lagu]\nContoh: 120,45 (berarti 120 Menit dan 45 Lagu)\n\nMasukkan nilai baru:`;
-        var val = window.prompt(promptMsg, `${currentMinutes},${currentPlays}`);
-        if (val === null) return;
+        var totalMinutes = Math.round((currentSeconds || 0) / 60);
+        var initHours = Math.floor(totalMinutes / 60);
+        var initMinutes = totalMinutes % 60;
 
-        var parts = val.split(',');
-        var newMinutes = parseInt(parts[0], 10);
-        var newPlays = parts[1] ? parseInt(parts[1], 10) : Math.max(1, Math.round(newMinutes / 3));
+        var existingModal = document.getElementById('admin-edit-stats-modal');
+        if (existingModal) existingModal.remove();
 
-        if (isNaN(newMinutes) || newMinutes < 0) {
-            if (typeof showToast === 'function') showToast('Format menit tidak valid.');
-            return;
-        }
+        var modal = document.createElement('div');
+        modal.id = 'admin-edit-stats-modal';
+        modal.className = 'fixed inset-0 z-[850] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in select-none';
 
-        var newSeconds = newMinutes * 60;
-        var token = Profile.getAdminToken();
-        if (!token) return;
+        modal.innerHTML = `
+            <div class="bg-[#121522] border border-white/15 w-full max-w-md rounded-2xl p-5 shadow-2xl flex flex-col space-y-4">
+                <div class="flex items-center justify-between pb-3 border-b border-white/10">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-9 h-9 rounded-xl bg-sky-500/20 border border-sky-500/30 text-sky-400 flex items-center justify-center">
+                            <i data-lucide="edit-3" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-base font-bold text-white leading-tight">Edit Statistik Peringkat</h3>
+                            <p class="text-xs text-white/60">@${esJs(username)}</p>
+                        </div>
+                    </div>
+                    <button type="button" onclick="document.getElementById('admin-edit-stats-modal')?.remove()" class="w-8 h-8 rounded-full bg-white/5 hover:bg-white/15 text-white/60 hover:text-white flex items-center justify-center active:scale-95 transition-all cursor-pointer">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
 
-        fetch('/api/analytics', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-admin-token': token
-            },
-            body: JSON.stringify({
-                action: 'update_user_stats',
-                username: username,
-                totalSeconds: newSeconds,
-                totalPlays: newPlays
-            })
-        }).then(res => res.json()).then(data => {
-            if (data && data.status) {
-                if (typeof showToast === 'function') showToast(data.message || `Statistik ${username} berhasil diperbarui`);
-                Profile.loadAdminGlobalStats(true);
-            } else {
-                if (typeof showToast === 'function') showToast(data?.message || 'Gagal mengubah statistik');
+                <div class="space-y-3.5">
+                    <div>
+                        <label class="block text-xs font-semibold text-white/70 mb-1.5">Durasi Mendengarkan:</label>
+                        <div class="grid grid-cols-2 gap-2.5">
+                            <div>
+                                <label class="block text-[11px] text-white/50 mb-1">Jam</label>
+                                <div class="relative">
+                                    <input type="number" id="edit-stat-hours" value="${initHours}" min="0" step="1" class="w-full bg-[#1b1f30] border border-white/15 rounded-xl px-3.5 py-2.5 text-sm font-mono text-sky-300 focus:outline-none focus:border-sky-500/60 transition-all">
+                                    <span class="absolute right-3.5 top-2.5 text-xs text-white/40 font-mono">Jam</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] text-white/50 mb-1">Menit</label>
+                                <div class="relative">
+                                    <input type="number" id="edit-stat-minutes" value="${initMinutes}" min="0" max="59" step="1" class="w-full bg-[#1b1f30] border border-white/15 rounded-xl px-3.5 py-2.5 text-sm font-mono text-sky-300 focus:outline-none focus:border-sky-500/60 transition-all">
+                                    <span class="absolute right-3.5 top-2.5 text-xs text-white/40 font-mono">Menit</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-white/70 mb-1.5">Total Lagu Diputar:</label>
+                        <div class="relative">
+                            <input type="number" id="edit-stat-plays" value="${currentPlays || Math.max(1, Math.round(totalMinutes / 3))}" min="0" step="1" class="w-full bg-[#1b1f30] border border-white/15 rounded-xl px-3.5 py-2.5 text-sm font-mono text-emerald-300 focus:outline-none focus:border-emerald-500/60 transition-all">
+                            <span class="absolute right-3.5 top-2.5 text-xs text-white/40 font-mono">Lagu</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-end gap-2 pt-2 border-t border-white/10">
+                    <button type="button" onclick="document.getElementById('admin-edit-stats-modal')?.remove()" class="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 font-semibold text-xs transition-all active:scale-95 cursor-pointer">
+                        Batal
+                    </button>
+                    <button type="button" id="btn-save-edit-stats" class="px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white font-bold text-xs shadow-lg shadow-sky-500/25 transition-all active:scale-95 cursor-pointer flex items-center gap-1.5">
+                        <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                        <span>Simpan Perubahan</span>
+                    </button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+        if (window.lucide) lucide.createIcons();
+
+        var saveBtn = document.getElementById('btn-save-edit-stats');
+        saveBtn.onclick = async function() {
+            var hrsEl = document.getElementById('edit-stat-hours');
+            var minEl = document.getElementById('edit-stat-minutes');
+            var playEl = document.getElementById('edit-stat-plays');
+
+            var inputHours = parseInt(hrsEl?.value, 10);
+            if (isNaN(inputHours) || inputHours < 0) inputHours = 0;
+
+            var inputMinutes = parseInt(minEl?.value, 10);
+            if (isNaN(inputMinutes) || inputMinutes < 0) inputMinutes = 0;
+
+            var newMinutes = (inputHours * 60) + inputMinutes;
+            var newPlays = parseInt(playEl?.value, 10);
+
+            if (isNaN(newPlays) || newPlays < 0) {
+                newPlays = Math.max(1, Math.round(newMinutes / 3));
             }
-        }).catch(() => {
-            if (typeof showToast === 'function') showToast('Koneksi bermasalah saat memperbarui data');
-        });
+
+            var newSeconds = newMinutes * 60;
+            var token = Profile.getAdminToken();
+            if (!token) return;
+
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i> Menyimpan...';
+
+            try {
+                var res = await fetch('/api/analytics', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-admin-token': token
+                    },
+                    body: JSON.stringify({
+                        action: 'update_user_stats',
+                        username: username,
+                        totalSeconds: newSeconds,
+                        totalPlays: newPlays
+                    })
+                });
+                var data = await res.json();
+                if (data && data.status) {
+                    if (typeof showToast === 'function') showToast(data.message || `Statistik ${username} berhasil diperbarui`);
+                    document.getElementById('admin-edit-stats-modal')?.remove();
+
+                    // Real-time invalidate GlobalStats cache and refresh live modal if open
+                    if (typeof GlobalStats !== 'undefined') {
+                        GlobalStats.cachedData = {};
+                        if (document.getElementById('global-stats-modal')) {
+                            GlobalStats.fetchData(GlobalStats.timeframe, true).then(() => GlobalStats.renderCurrentTab());
+                        }
+                    }
+                    Profile.loadAdminGlobalStats(true);
+                } else {
+                    if (typeof showToast === 'function') showToast(data?.message || 'Gagal mengubah statistik');
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = 'Simpan Perubahan';
+                }
+            } catch(e) {
+                if (typeof showToast === 'function') showToast('Koneksi bermasalah saat memperbarui data');
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = 'Simpan Perubahan';
+            }
+        };
     },
 
     adminToggleHideUser(username, isCurrentlyHidden) {
@@ -9785,6 +9876,12 @@ var Profile = {
                     var data = await res.json();
                     if (data && data.status) {
                         if (typeof showToast === 'function') showToast(data.message);
+                        if (typeof GlobalStats !== 'undefined') {
+                            GlobalStats.cachedData = {};
+                            if (document.getElementById('global-stats-modal')) {
+                                GlobalStats.fetchData(GlobalStats.timeframe, true).then(() => GlobalStats.renderCurrentTab());
+                            }
+                        }
                         Profile.loadAdminGlobalStats(true);
                     } else {
                         if (typeof showToast === 'function') showToast(data?.message || 'Gagal mengubah status');
@@ -9821,6 +9918,12 @@ var Profile = {
                     var data = await res.json();
                     if (data && data.status) {
                         if (typeof showToast === 'function') showToast(data.message);
+                        if (typeof GlobalStats !== 'undefined') {
+                            GlobalStats.cachedData = {};
+                            if (document.getElementById('global-stats-modal')) {
+                                GlobalStats.fetchData(GlobalStats.timeframe, true).then(() => GlobalStats.renderCurrentTab());
+                            }
+                        }
                         Profile.loadAdminGlobalStats(true);
                     } else {
                         if (typeof showToast === 'function') showToast(data?.message || 'Gagal mereset statistik user');

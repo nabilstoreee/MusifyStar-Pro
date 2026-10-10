@@ -214,6 +214,7 @@ app.all('/api/global-chat', require('./api/global-chat.js'));
 app.all('/api/admin-chat', require('./api/admin-chat.js'));
 app.all('/api/avatars', require('./api/avatars.js'));
 app.all('/api/borders', require('./api/borders.js'));
+app.all('/api/vouchers', require('./api/vouchers.js'));
 
 // Proxy audio needs to stream in node, bypassing edge function
 app.get('/api/proxy-audio', (req, res) => {

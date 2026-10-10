@@ -448,7 +448,7 @@
                                 <div class="relative z-20 flex flex-col items-center w-full px-1">
                                     <h5 class="text-sm font-black text-white truncate w-full flex items-center justify-center gap-1">
                                         <span>${first.username}</span>
-                                        ${b1.isMe ? '<span class="text-[8px] bg-sky-500/20 text-sky-300 border border-sky-500/30 px-1 py-0.2 rounded font-bold">Kamu</span>' : ''}
+                                        ${b1.isMe ? '<span class="text-[8px] bg-sky-500/20 text-sky-300 border border-sky-500/30 px-1 py-0.2 rounded font-bold"></span>' : ''}
                                         ${first.isVip ? '<i data-lucide="crown" class="w-3 h-3 text-amber-400 inline"></i>' : ''}
                                     </h5>
                                     ${b1.borderName ? `<span class="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 text-[9.5px] font-extrabold leading-none shadow-sm">Border: ${b1.borderName}</span>` : ''}
@@ -478,7 +478,7 @@
                                 <div class="relative z-20 flex flex-col items-center w-full px-1">
                                     <h5 class="text-xs font-black text-white truncate w-full flex items-center justify-center gap-1">
                                         <span>${third.username}</span>
-                                        ${b3.isMe ? '<span class="text-[8px] bg-sky-500/20 text-sky-300 border border-sky-500/30 px-1 py-0.2 rounded font-bold">Kamu</span>' : ''}
+                                        ${b3.isMe ? '<span class="text-[8px] bg-sky-500/20 text-sky-300 border border-sky-500/30 px-1 py-0.2 rounded font-bold"></span>' : ''}
                                     </h5>
                                     ${b3.borderName ? `<span class="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-700/20 text-amber-300 border border-amber-700/30 text-[9px] font-bold leading-none shadow-sm">Border: ${b3.borderName}</span>` : ''}
                                     <span class="text-[10px] text-amber-400 font-mono mt-1 font-bold">${third.formattedDuration}</span>
@@ -524,7 +524,7 @@
                                     <div class="min-w-0 flex-1 relative z-20">
                                         <div class="flex items-center gap-1.5">
                                             <h5 class="text-white font-bold text-xs truncate max-w-[140px]">${item.username}</h5>
-                                            ${bi.isMe ? '<span class="text-[8px] bg-sky-500/20 text-sky-300 border border-sky-500/30 px-1 py-0.2 rounded font-bold font-mono">Kamu</span>' : ''}
+                                            ${bi.isMe ? '<span class="text-[8px] bg-sky-500/20 text-sky-300 border border-sky-500/30 px-1 py-0.2 rounded font-bold font-mono"></span>' : ''}
                                             ${item.isVip ? '<span class="text-[8px] bg-amber-400/20 text-amber-300 border border-amber-400/30 px-1 py-0.2 rounded font-black font-mono">VIP</span>' : ''}
                                             ${item.isOnline ? '<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" title="Sedang Mendengarkan"></span>' : ''}
                                         </div>

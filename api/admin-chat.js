@@ -74,8 +74,10 @@ function resolveUserMetadata(u) {
         }
     }
 
-    const isVip = Boolean(u.isVip || u.is_vip || u.isPremium || u.is_premium);
-    const vipTier = u.vipTier || u.vip_tier || (isVip ? 'permanent' : 'none');
+    const isVipExpired = u.vipExpiresAt && Date.now() > u.vipExpiresAt;
+    const isTierActive = Boolean(u.vipTier && u.vipTier !== 'none');
+    const isVip = Boolean(((u.isVip || u.is_vip || u.isPremium || u.is_premium || isTierActive) && u.vipTier !== 'none') && !isVipExpired);
+    const vipTier = isVip ? (u.vipTier || u.vip_tier || 'permanent') : 'none';
 
     return {
         id: u.id || '',
@@ -239,8 +241,10 @@ module.exports = async function handler(req, res) {
             if (lastUserMsg.senderAvatarUrl && lastUserMsg.senderAvatarUrl !== '/auth-logo.png') userProfile.avatarUrl = lastUserMsg.senderAvatarUrl;
             if (lastUserMsg.senderBorderUrl) userProfile.borderUrl = lastUserMsg.senderBorderUrl;
             if (lastUserMsg.senderBorderName) userProfile.borderName = lastUserMsg.senderBorderName;
-            if (lastUserMsg.senderIsVip) userProfile.isVip = true;
-            if (lastUserMsg.senderVipTier && lastUserMsg.senderVipTier !== 'none') userProfile.vipTier = lastUserMsg.senderVipTier;
+            if (!foundUser) {
+                if (lastUserMsg.senderIsVip) userProfile.isVip = true;
+                if (lastUserMsg.senderVipTier && lastUserMsg.senderVipTier !== 'none') userProfile.vipTier = lastUserMsg.senderVipTier;
+            }
         }
 
         // Calculate unread count
@@ -307,8 +311,8 @@ module.exports = async function handler(req, res) {
                 const finalAvatar = (meta && meta.avatarUrl && meta.avatarUrl !== '/auth-logo.png') ? meta.avatarUrl : (m.senderAvatarUrl || '/auth-logo.png');
                 const finalBorderUrl = (meta && meta.borderUrl) ? meta.borderUrl : (m.senderBorderUrl || '');
                 const finalBorderName = (meta && meta.borderName) ? meta.borderName : (m.senderBorderName || '');
-                const finalIsVip = Boolean((meta && meta.isVip) || m.senderIsVip);
-                const finalVipTier = (meta && meta.vipTier && meta.vipTier !== 'none') ? meta.vipTier : (m.senderVipTier || 'none');
+                const finalIsVip = meta ? Boolean(meta.isVip) : Boolean(m.senderIsVip);
+                const finalVipTier = meta ? (meta.vipTier || 'none') : (m.senderVipTier || 'none');
 
                 threadsMap.set(uid, {
                     userId: uid,
@@ -326,14 +330,17 @@ module.exports = async function handler(req, res) {
                 });
             }
             const thread = threadsMap.get(uid);
+            const uInfo = registeredUsersMap.get(uid) || registeredUsersMap.get(uid.toLowerCase());
 
             if (m.senderRole === 'user') {
                 if (m.senderUsername && m.senderUsername !== 'Pengguna') thread.username = m.senderUsername;
                 if (m.senderAvatarUrl && m.senderAvatarUrl !== '/auth-logo.png') thread.avatarUrl = m.senderAvatarUrl;
                 if (m.senderBorderUrl) thread.borderUrl = m.senderBorderUrl;
                 if (m.senderBorderName) thread.borderName = m.senderBorderName;
-                if (m.senderIsVip) thread.isVip = true;
-                if (m.senderVipTier && m.senderVipTier !== 'none') thread.vipTier = m.senderVipTier;
+                if (!uInfo) {
+                    if (m.senderIsVip) thread.isVip = true;
+                    if (m.senderVipTier && m.senderVipTier !== 'none') thread.vipTier = m.senderVipTier;
+                }
             }
 
             thread.lastMessage = m.message || (m.attachment ? '📷 Foto / Bukti Transfer' : '');

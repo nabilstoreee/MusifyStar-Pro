@@ -464,7 +464,8 @@ function buildLeaderboardList(data, tf = 'all', includeHidden = false) {
         const uKey = u.username.toLowerCase();
         const isVipExpired = u.vipExpiresAt && Date.now() > u.vipExpiresAt;
         const isMasterAdmin = (uKey === 'nabil' || (u.email && u.email.toLowerCase().trim() === 'jrnabil570@gmail.com'));
-        const isVip = Boolean((u.isPremium || u.is_premium || u.vipTier || isMasterAdmin) && !isVipExpired);
+        const isTierActive = Boolean(u.vipTier && u.vipTier !== 'none');
+        const isVip = Boolean((isMasterAdmin || ((u.isPremium || u.is_premium || isTierActive) && u.vipTier !== 'none')) && !isVipExpired);
 
         let entry = lbMap.get(uKey);
         if (!entry) {

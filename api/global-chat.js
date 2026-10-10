@@ -192,10 +192,12 @@ module.exports = async function (req, res) {
                 const activeBorderId = matchedUser?.border || r.border_id || '';
                 const borderInfo = resolveBorderDetails(activeBorderId, matchedUser?.borderUrl || r.border_url, matchedUser?.borderName || r.border_name);
 
-                const isUserVipRaw = isMsgMasterAdmin || !!(matchedUser?.isPremium || matchedUser?.is_premium || r.is_vip);
+                const isTierActive = Boolean(matchedUser?.vipTier && matchedUser?.vipTier !== 'none');
+                const matchedIsVip = Boolean(matchedUser ? ((matchedUser.isPremium || matchedUser.is_premium || isTierActive) && matchedUser.vipTier !== 'none') : r.is_vip);
+                const isUserVipRaw = isMsgMasterAdmin || matchedIsVip;
                 const vipExpiresAt = matchedUser?.vipExpiresAt || null;
                 const isVipActive = isUserVipRaw && (!vipExpiresAt || Date.now() <= vipExpiresAt);
-                const vipTier = isMsgMasterAdmin ? 'permanent' : (matchedUser?.vipTier || r.vip_tier || (isVipActive ? 'permanent' : 'none'));
+                const vipTier = isMsgMasterAdmin ? 'permanent' : (isVipActive ? (matchedUser?.vipTier || r.vip_tier || 'permanent') : 'none');
 
                 return {
                     id: String(r.id),

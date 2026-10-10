@@ -224,7 +224,8 @@ const handler = async (req, res) => {
                 );
 
                 const isMasterAdmin = (currentUsername === 'nabil' || (myUser && (myUser.rawEmail === 'jrnabil570@gmail.com' || myUser.email === 'jrnabil570@gmail.com' || myUser.role === 'admin')));
-                const isUserVip = myUser ? (myUser.isPremium || myUser.is_premium || myUser.vipTier || isMasterAdmin) : isMasterAdmin;
+                const isTierActive = Boolean(myUser && myUser.vipTier && myUser.vipTier !== 'none');
+                const isUserVip = myUser ? ((myUser.isPremium || myUser.is_premium || isTierActive || isMasterAdmin) && myUser.vipTier !== 'none') : isMasterAdmin;
 
                 if (isUserVip) {
                     const alreadyHasVipMsg = data.messages.some(m => 

@@ -68,6 +68,22 @@ function getUserIdFromToken(token, db) {
     return null;
 }
 
+function resolveUserVipStatus(user) {
+    if (!user) return { isPremium: false, vipTier: 'none', vipExpiresAt: null };
+    const email = (user.rawEmail || user.email || '').toLowerCase().trim();
+    const username = (user.username || '').toLowerCase().trim();
+    const isMaster = (email === 'jrnabil570@gmail.com') || (username === 'nabil');
+    if (isMaster) {
+        return { isPremium: true, vipTier: 'permanent', vipExpiresAt: null };
+    }
+    const isVipExpired = user.vipExpiresAt && Date.now() > user.vipExpiresAt;
+    const isTierActive = Boolean(user.vipTier && user.vipTier !== 'none');
+    const isPremium = Boolean((user.isPremium || user.is_premium || isTierActive) && user.vipTier !== 'none' && !isVipExpired);
+    const vipTier = isPremium ? (user.vipTier || 'permanent') : 'none';
+    const vipExpiresAt = isPremium ? (user.vipExpiresAt || null) : null;
+    return { isPremium, vipTier, vipExpiresAt };
+}
+
 // Ban registry async persistence helpers
 async function readBanRegistryAsync() {
     try {
@@ -429,6 +445,10 @@ module.exports = async (req, res) => {
                 const userList = db.users.map(u => {
                     const banStatus = getUserBanStatus(u, banRegistry);
                     const isMaster = (u.rawEmail || u.email || '').toLowerCase().trim() === 'jrnabil570@gmail.com';
+                    const isVipExpired = u.vipExpiresAt && Date.now() > u.vipExpiresAt;
+                    const isTierActive = Boolean(u.vipTier && u.vipTier !== 'none');
+                    const isUserPremium = isMaster || (Boolean(u.isPremium || u.is_premium || isTierActive) && u.vipTier !== 'none' && !isVipExpired);
+                    const userTier = isMaster ? 'permanent' : (isUserPremium ? (u.vipTier || 'permanent') : 'none');
                     return {
                         id: u.id,
                         username: u.username,
@@ -438,12 +458,12 @@ module.exports = async (req, res) => {
                         lastLoginAt: u.lastLoginAt || u.createdAt,
                         lastIp: u.rawLastIp || u.lastIp || '127.0.0.1',
                         maskedPassword: '••••••••',
-                        isPremium: isMaster || !!u.isPremium || !!u.is_premium,
-                        vipTier: u.vipTier || (isMaster ? 'permanent' : (u.isPremium ? 'permanent' : 'none')),
-                        vipExpiresAt: u.vipExpiresAt || null,
-                        border: u.border || '',
-                        borderUrl: u.borderUrl || '',
-                        borderName: u.borderName || '',
+                        isPremium: isUserPremium,
+                        vipTier: userTier,
+                        vipExpiresAt: isUserPremium ? (u.vipExpiresAt || null) : null,
+                        border: isUserPremium ? (u.border || '') : '',
+                        borderUrl: isUserPremium ? (u.borderUrl || '') : '',
+                        borderName: isUserPremium ? (u.borderName || '') : '',
                         banType: u.banType || 'none',
                         banReason: u.banReason || '',
                         banExpiresAt: u.banExpiresAt || null,
@@ -487,10 +507,20 @@ module.exports = async (req, res) => {
 
                 const user = db.users[userIndex];
                 user.isPremium = isPremium;
+                user.is_premium = isPremium;
+                user.isVip = isPremium;
+                user.is_vip = isPremium;
                 user.vipTier = vipTier;
-                user.vipGrantedAt = Date.now();
+                user.vipGrantedAt = isPremium ? Date.now() : null;
 
-                if (vipTier === '1month') {
+                const customDays = parseInt(body.durationDays, 10);
+                if (vipTier === 'permanent' || customDays === 0) {
+                    user.vipExpiresAt = null; // Selamanya
+                } else if (!isNaN(customDays) && customDays > 0) {
+                    user.vipExpiresAt = Date.now() + (customDays * 24 * 60 * 60 * 1000);
+                } else if (vipTier === 'trial' || vipTier === '1week') {
+                    user.vipExpiresAt = Date.now() + (7 * 24 * 60 * 60 * 1000); // 7 hari trial
+                } else if (vipTier === '1month') {
                     user.vipExpiresAt = Date.now() + (30 * 24 * 60 * 60 * 1000); // 30 hari
                 } else if (vipTier === '2months') {
                     user.vipExpiresAt = Date.now() + (60 * 24 * 60 * 60 * 1000); // 60 hari
@@ -499,7 +529,13 @@ module.exports = async (req, res) => {
                 } else if (vipTier === 'permanent') {
                     user.vipExpiresAt = null; // Selamanya
                 } else {
+                    user.isPremium = false;
+                    user.is_premium = false;
+                    user.isVip = false;
+                    user.is_vip = false;
+                    user.vipTier = 'none';
                     user.vipExpiresAt = null;
+                    user.vipGrantedAt = null;
                     user.border = '';
                     user.borderUrl = '';
                     user.borderName = '';
@@ -996,9 +1032,9 @@ module.exports = async (req, res) => {
                             border: user.border || '',
                             borderUrl: user.borderUrl || '',
                             borderName: user.borderName || '',
-                            isPremium: !!user.isPremium || !!user.is_premium || ((user.rawEmail || user.email || '').toLowerCase().trim() === 'jrnabil570@gmail.com') || user.role === 'admin',
-                            vipTier: user.vipTier || (((user.rawEmail || user.email || '').toLowerCase().trim() === 'jrnabil570@gmail.com' || user.role === 'admin' || user.isPremium) ? 'permanent' : 'none'),
-                            vipExpiresAt: user.vipExpiresAt || null,
+                            isPremium: resolveUserVipStatus(user).isPremium,
+                            vipTier: resolveUserVipStatus(user).vipTier,
+                            vipExpiresAt: resolveUserVipStatus(user).vipExpiresAt,
                             role: user.role || (((user.rawEmail || user.email || '').toLowerCase().trim() === 'jrnabil570@gmail.com') ? 'admin' : 'member'),
                             createdAt: user.createdAt,
                             ip: clientIp,
@@ -1221,9 +1257,9 @@ module.exports = async (req, res) => {
                     border: user.border || '',
                     borderUrl: user.borderUrl || '',
                     borderName: user.borderName || '',
-                    isPremium: !!user.isPremium || !!user.is_premium || ((user.rawEmail || user.email || '').toLowerCase().trim() === 'jrnabil570@gmail.com') || user.role === 'admin',
-                    vipTier: user.vipTier || (((user.rawEmail || user.email || '').toLowerCase().trim() === 'jrnabil570@gmail.com' || user.role === 'admin' || user.isPremium) ? 'permanent' : 'none'),
-                    vipExpiresAt: user.vipExpiresAt || null,
+                    isPremium: resolveUserVipStatus(user).isPremium,
+                    vipTier: resolveUserVipStatus(user).vipTier,
+                    vipExpiresAt: resolveUserVipStatus(user).vipExpiresAt,
                     role: user.role || (((user.rawEmail || user.email || '').toLowerCase().trim() === 'jrnabil570@gmail.com') ? 'admin' : 'member'),
                     createdAt: user.createdAt
                 }
@@ -1356,9 +1392,9 @@ module.exports = async (req, res) => {
                     border: user.border || '',
                     borderUrl: user.borderUrl || '',
                     borderName: user.borderName || '',
-                    isPremium: !!user.isPremium || !!user.is_premium || ((user.rawEmail || user.email || '').toLowerCase().trim() === 'jrnabil570@gmail.com') || user.role === 'admin',
-                    vipTier: user.vipTier || (((user.rawEmail || user.email || '').toLowerCase().trim() === 'jrnabil570@gmail.com' || user.role === 'admin' || user.isPremium) ? 'permanent' : 'none'),
-                    vipExpiresAt: user.vipExpiresAt || null,
+                    isPremium: resolveUserVipStatus(user).isPremium,
+                    vipTier: resolveUserVipStatus(user).vipTier,
+                    vipExpiresAt: resolveUserVipStatus(user).vipExpiresAt,
                     role: user.role || (((user.rawEmail || user.email || '').toLowerCase().trim() === 'jrnabil570@gmail.com') ? 'admin' : 'member'),
                     createdAt: user.createdAt
                 }
@@ -1378,8 +1414,9 @@ module.exports = async (req, res) => {
             }
 
             const user = db.users[userIndex];
-            const isMasterAdmin = (user.rawEmail || user.email || '').toLowerCase().trim() === 'jrnabil570@gmail.com' || (user.username || '').toLowerCase().trim() === 'nabil' || user.role === 'admin';
-            let isUserVip = isMasterAdmin || !!user.isPremium || !!user.is_premium;
+            const isMasterAdmin = (user.rawEmail || user.email || '').toLowerCase().trim() === 'jrnabil570@gmail.com' || (user.username || '').toLowerCase().trim() === 'nabil';
+            let vipInfo = resolveUserVipStatus(user);
+            let isUserVip = vipInfo.isPremium;
 
             // Update username if provided
             if (body.username !== undefined) {
@@ -1480,9 +1517,9 @@ module.exports = async (req, res) => {
                     border: user.border || '',
                     borderUrl: user.borderUrl || '',
                     borderName: user.borderName || '',
-                    isPremium: isUserVip,
-                    vipTier: user.vipTier || (isUserVip ? 'permanent' : 'none'),
-                    vipExpiresAt: user.vipExpiresAt || null,
+                    isPremium: vipInfo.isPremium,
+                    vipTier: vipInfo.vipTier,
+                    vipExpiresAt: vipInfo.vipExpiresAt,
                     role: user.role || (isMasterAdmin ? 'admin' : 'member'),
                     createdAt: user.createdAt
                 }

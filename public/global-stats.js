@@ -144,58 +144,57 @@
 
             var modal = document.createElement('div');
             modal.id = 'global-stats-modal';
-            modal.className = 'fixed inset-0 z-[660] bg-black/85 backdrop-blur-md flex items-center justify-center p-2.5 sm:p-4 select-none overflow-hidden';
-            modal.style.animation = 'fadeIn 0.2s ease-out';
+            modal.className = 'fixed inset-0 z-[700] bg-[#07090e] flex flex-col select-none overflow-hidden h-[100dvh] max-h-[100dvh] animate-fade-in';
 
             modal.innerHTML = `
-                <!-- Backdrop dismiss -->
-                <div onclick="GlobalStats.closeModal()" class="fixed inset-0 bg-transparent"></div>
-
-                <!-- Modal Dialog Container -->
-                <div class="relative z-10 w-full max-w-xl max-h-[92vh] sm:max-h-[88vh] bg-[#0c0f18]/95 border border-white/15 rounded-3xl shadow-2xl flex flex-col overflow-hidden backdrop-blur-2xl transition-all">
-                    
-                    <!-- Header Modal -->
-                    <div class="p-4 sm:p-5 border-b border-white/10 flex items-center justify-between shrink-0 bg-gradient-to-r from-amber-500/10 via-purple-500/5 to-sky-500/10">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center text-black shadow-[0_0_20px_rgba(245,158,11,0.35)] shrink-0">
-                                <i data-lucide="trophy" class="w-5 h-5 fill-black stroke-black"></i>
-                            </div>
-                            <div>
-                                <div class="flex items-center gap-2">
-                                    <h2 class="text-base sm:text-lg font-black text-white tracking-tight leading-tight">Global Stats & Leaderboard</h2>
-                                    <span id="gs-live-indicator" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[9.5px] font-mono text-emerald-400">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-                                        <span id="gs-live-badge-text">Live</span>
-                                    </span>
-                                </div>
-                                <p class="text-[11px] text-white/50 leading-tight mt-0.5">Papan peringkat pendengar & pamer Border profil</p>
-                            </div>
+                <!-- Full Page Sticky Header -->
+                <div class="pt-5 sm:pt-6 pb-3.5 px-4 shrink-0 border-b border-white/10 shadow-2xl transition-all flex items-center justify-between" style="background: linear-gradient(180deg, rgba(13, 15, 22, 0.92) 0%, rgba(13, 15, 22, 0.98) 100%), url('/banner.png') center/cover no-repeat; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);">
+                    <div class="flex items-center gap-3">
+                        <button type="button" onclick="GlobalStats.closeModal()" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white flex items-center justify-center active:scale-95 transition-all cursor-pointer shadow-sm" title="Kembali">
+                            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                        </button>
+                        <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center text-black shadow-[0_0_20px_rgba(245,158,11,0.35)] shrink-0">
+                            <i data-lucide="trophy" class="w-5 h-5 fill-black stroke-black"></i>
                         </div>
-
-                        <div class="flex items-center gap-1.5">
-                            <button id="gs-refresh-btn" onclick="GlobalStats.refreshData()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white/70 hover:text-white flex items-center justify-center transition-all cursor-pointer active:scale-95" title="Segarkan Data">
-                                <i data-lucide="rotate-cw" class="w-4 h-4"></i>
-                            </button>
-                            <button onclick="GlobalStats.closeModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white/70 hover:text-white flex items-center justify-center transition-all cursor-pointer active:scale-95" title="Tutup">
-                                <i data-lucide="x" class="w-4 h-4"></i>
-                            </button>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h1 class="text-lg sm:text-xl font-black text-white tracking-tight leading-tight">Global Stats & Leaderboard</h1>
+                                <span id="gs-live-indicator" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[9.5px] font-mono text-emerald-400">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                    <span id="gs-live-badge-text">Live</span>
+                                </span>
+                            </div>
+                            <p class="text-white/60 text-xs leading-tight mt-0.5">Papan peringkat pendengar & pamer Border profil</p>
                         </div>
                     </div>
 
-                    <!-- Main Navigation Tabs -->
-                    <div class="px-3 pt-3 pb-2 border-b border-white/5 bg-[#10121d]/70 flex items-center gap-2 overflow-x-auto hide-scrollbar shrink-0">
-                        <button onclick="GlobalStats.switchTab('leaderboard')" id="gs-tab-leaderboard" class="flex-1 min-w-[130px] py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm ${this.activeTab === 'leaderboard' ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-black shadow-[0_0_15px_rgba(245,158,11,0.3)]' : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white border border-white/10'}">
+                    <div class="flex items-center gap-2">
+                        <button id="gs-refresh-btn" onclick="GlobalStats.refreshData()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 border border-white/15 text-white/70 hover:text-white flex items-center justify-center transition-all cursor-pointer active:scale-95" title="Segarkan Data">
+                            <i data-lucide="rotate-cw" class="w-4 h-4"></i>
+                        </button>
+                        <button type="button" onclick="GlobalStats.closeModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-white/70 hover:text-white transition-all cursor-pointer">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Main Navigation Tabs -->
+                <div class="px-4 py-2.5 border-b border-white/5 bg-[#10121d]/80 flex items-center justify-center gap-2 overflow-x-auto hide-scrollbar shrink-0">
+                    <div class="max-w-2xl w-full flex items-center gap-2">
+                        <button onclick="GlobalStats.switchTab('leaderboard')" id="gs-tab-leaderboard" class="flex-1 py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm ${this.activeTab === 'leaderboard' ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-black shadow-[0_0_15px_rgba(245,158,11,0.3)]' : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white border border-white/10'}">
                             <i data-lucide="award" class="w-3.5 h-3.5"></i>
                             <span>Papan Peringkat</span>
                         </button>
-                        <button onclick="GlobalStats.switchTab('songs')" id="gs-tab-songs" class="flex-1 min-w-[130px] py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm ${this.activeTab === 'songs' ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-[0_0_15px_rgba(244,63,94,0.3)]' : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white border border-white/10'}">
+                        <button onclick="GlobalStats.switchTab('songs')" id="gs-tab-songs" class="flex-1 py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm ${this.activeTab === 'songs' ? 'bg-gradient-to-r from-rose-500 to-pink-500 text-white shadow-[0_0_15px_rgba(244,63,94,0.3)]' : 'bg-white/5 text-white/70 hover:bg-white/10 hover:text-white border border-white/10'}">
                             <i data-lucide="flame" class="w-3.5 h-3.5"></i>
                             <span>Top 20 Lagu Terpopuler</span>
                         </button>
                     </div>
+                </div>
 
-                    <!-- Scrollable Modal Body -->
-                    <div id="global-stats-content" class="flex-1 overflow-y-auto overscroll-contain p-3.5 sm:p-4 space-y-4 hide-scrollbar">
+                <!-- Full Page Scrollable Body -->
+                <div class="flex-1 overflow-y-auto overscroll-contain hide-scrollbar p-4 sm:p-6 max-w-2xl mx-auto w-full pb-32">
+                    <div id="global-stats-content" class="space-y-4">
                         <div class="py-12 flex flex-col items-center justify-center gap-3 text-white/60">
                             <i data-lucide="loader-2" class="w-7 h-7 text-amber-400 animate-spin"></i>
                             <span class="text-xs font-medium">Memuat statistik global & peringkat...</span>
@@ -417,7 +416,6 @@
                                 <div class="relative z-20 flex flex-col items-center w-full px-1">
                                     <h5 class="text-xs font-black text-white truncate w-full flex items-center justify-center gap-1">
                                         <span>${second.username}</span>
-                                        ${b2.isMe ? '<span class="text-[8px] bg-sky-500/20 text-sky-300 border border-sky-500/30 px-1 py-0.2 rounded font-bold"></span>' : ''}
                                     </h5>
                                     ${b2.borderName ? `<span class="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-slate-400/20 text-slate-200 border border-slate-400/30 text-[9px] font-bold leading-none shadow-sm">Border: ${b2.borderName}</span>` : ''}
                                     <span class="text-[10px] text-slate-300 font-mono mt-1 font-bold">${second.formattedDuration}</span>
@@ -448,7 +446,6 @@
                                 <div class="relative z-20 flex flex-col items-center w-full px-1">
                                     <h5 class="text-sm font-black text-white truncate w-full flex items-center justify-center gap-1">
                                         <span>${first.username}</span>
-                                        ${b1.isMe ? '<span class="text-[8px] bg-sky-500/20 text-sky-300 border border-sky-500/30 px-1 py-0.2 rounded font-bold"></span>' : ''}
                                         ${first.isVip ? '<i data-lucide="crown" class="w-3 h-3 text-amber-400 inline"></i>' : ''}
                                     </h5>
                                     ${b1.borderName ? `<span class="mt-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 text-[9.5px] font-extrabold leading-none shadow-sm">Border: ${b1.borderName}</span>` : ''}
@@ -478,7 +475,6 @@
                                 <div class="relative z-20 flex flex-col items-center w-full px-1">
                                     <h5 class="text-xs font-black text-white truncate w-full flex items-center justify-center gap-1">
                                         <span>${third.username}</span>
-                                        ${b3.isMe ? '<span class="text-[8px] bg-sky-500/20 text-sky-300 border border-sky-500/30 px-1 py-0.2 rounded font-bold"></span>' : ''}
                                     </h5>
                                     ${b3.borderName ? `<span class="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-700/20 text-amber-300 border border-amber-700/30 text-[9px] font-bold leading-none shadow-sm">Border: ${b3.borderName}</span>` : ''}
                                     <span class="text-[10px] text-amber-400 font-mono mt-1 font-bold">${third.formattedDuration}</span>
@@ -524,7 +520,6 @@
                                     <div class="min-w-0 flex-1 relative z-20">
                                         <div class="flex items-center gap-1.5">
                                             <h5 class="text-white font-bold text-xs truncate max-w-[140px]">${item.username}</h5>
-                                            ${bi.isMe ? '<span class="text-[8px] bg-sky-500/20 text-sky-300 border border-sky-500/30 px-1 py-0.2 rounded font-bold font-mono"></span>' : ''}
                                             ${item.isVip ? '<span class="text-[8px] bg-amber-400/20 text-amber-300 border border-amber-400/30 px-1 py-0.2 rounded font-black font-mono">VIP</span>' : ''}
                                             ${item.isOnline ? '<span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" title="Sedang Mendengarkan"></span>' : ''}
                                         </div>

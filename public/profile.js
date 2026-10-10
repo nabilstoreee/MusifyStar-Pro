@@ -350,130 +350,146 @@ var Profile = {
 
         var modal = document.createElement('div');
         modal.id = 'musifystar-vip-packages-modal';
-        modal.className = 'fixed inset-0 z-[750] flex items-center justify-center p-2.5 sm:p-4 bg-black/90 backdrop-blur-xl animate-fade-in select-none';
+        modal.className = 'fixed inset-0 z-[750] bg-[#07090e] flex flex-col select-none overflow-hidden h-[100dvh] max-h-[100dvh] animate-fade-in';
         modal.innerHTML = `
-        <div class="w-full max-w-md sm:max-w-lg bg-[#0e1017] border border-amber-400/40 rounded-3xl shadow-2xl overflow-hidden relative flex flex-col max-h-[94vh]" style="box-shadow: 0 25px 60px -15px rgba(245,158,11,0.35);">
-            <!-- Close Button -->
-            <button onclick="gid('musifystar-vip-packages-modal')?.remove()" class="absolute top-4 right-4 z-20 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-white/70 hover:text-white transition-all cursor-pointer">
+        <!-- Full Page Sticky Header -->
+        <div class="pt-5 sm:pt-6 pb-3.5 px-4 shrink-0 border-b border-white/10 shadow-2xl transition-all flex items-center justify-between" style="background: linear-gradient(180deg, rgba(13, 15, 22, 0.92) 0%, rgba(13, 15, 22, 0.98) 100%), url('/banner.png') center/cover no-repeat; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);">
+            <div class="flex items-center gap-3">
+                <button onclick="gid('musifystar-vip-packages-modal')?.remove()" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white flex items-center justify-center active:scale-95 transition-all cursor-pointer shadow-sm" title="Kembali">
+                    <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                </button>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-black text-amber-400 tracking-tight drop-shadow-md leading-tight flex items-center gap-1.5">
+                        <span>MusifyStar VIP Member</span>
+                        <i data-lucide="crown" class="w-4 h-4 fill-amber-400 text-amber-400"></i>
+                    </h1>
+                    <p class="text-white/60 text-xs leading-tight mt-0.5">Buka semua fitur VIP eksklusif, audio HD & border spesial</p>
+                </div>
+            </div>
+            <button onclick="gid('musifystar-vip-packages-modal')?.remove()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-white/70 hover:text-white transition-all cursor-pointer">
                 <i data-lucide="x" class="w-4 h-4"></i>
             </button>
+        </div>
 
-            <!-- Header Card (Desain Mewah IceBeats / MusifyStar VIP Member) -->
-            <div class="pt-6 pb-3 px-5 sm:px-6 text-center relative shrink-0">
-                <!-- Glowing Golden Crown Icon in Circle -->
-                <div class="w-14 h-14 rounded-full bg-gradient-to-tr from-amber-500 to-yellow-400 flex items-center justify-center text-black mx-auto shadow-[0_0_25px_rgba(245,158,11,0.5)] mb-3">
-                    <i data-lucide="crown" class="w-7 h-7 fill-black stroke-black"></i>
+        <!-- Full Page Scrollable Body -->
+        <div class="flex-1 overflow-y-auto overscroll-contain hide-scrollbar p-4 sm:p-6 max-w-2xl mx-auto w-full pb-32 space-y-4">
+            
+            <!-- Hero Banner Card VIP -->
+            <div class="p-4 rounded-2xl bg-gradient-to-r from-amber-500/15 via-yellow-500/10 to-amber-500/15 border border-amber-400/30 flex items-center gap-3.5 shadow-md">
+                <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-yellow-400 flex items-center justify-center text-black shrink-0 shadow-[0_0_20px_rgba(245,158,11,0.4)]">
+                    <i data-lucide="crown" class="w-6 h-6 fill-black stroke-black"></i>
                 </div>
-                <h2 class="text-xl sm:text-2xl font-black text-amber-400 tracking-tight leading-tight">MusifyStar VIP Member</h2>
-                <p class="text-xs text-white/70 mt-1 max-w-sm mx-auto leading-relaxed">Buka semua fitur VIP eksklusif, kualitas audio HD, bebas border animasi profil, dan nikmati musik tanpa batas!</p>
+                <div>
+                    <h2 class="text-base sm:text-lg font-black text-white leading-tight">Langganan VIP MusifyStar</h2>
+                    <p class="text-xs text-white/70 mt-0.5 leading-relaxed">Nikmati musik kualitas Ultra HD 320kbps, bebas border profil animasi, dan pengalaman tanpa iklan!</p>
+                </div>
             </div>
 
-            <!-- Scrollable Body (Pilihan Paket Langganan di Atas, Tombol Beli di Tengah, Keuntungan di Bawah) -->
-            <div class="flex-1 overflow-y-auto px-4 sm:px-6 py-2 space-y-4 hide-scrollbar">
-                
-                <!-- BAGIAN 1: PILIH PAKET LANGGANAN (Vertical Stack Cards ala Screenshot) -->
-                <div class="space-y-2.5">
-                    <div class="text-[11px] font-black uppercase tracking-wider text-amber-400/90 px-1">
-                        PILIH PAKET LANGGANAN
-                    </div>
+            <!-- BAGIAN 1: PILIH PAKET LANGGANAN -->
+            <div class="space-y-2">
+                <div class="text-xs font-black uppercase tracking-wider text-amber-400 px-0.5 flex items-center gap-1.5">
+                    <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i>
+                    <span>PILIH PAKET LANGGANAN</span>
+                </div>
 
-                    <div class="space-y-2.5">
-                        ${packages.map(function(pkg) {
-                            var isSel = (Profile.selectedVipPackage && Profile.selectedVipPackage.id === pkg.id);
-                            var priceFmt = Number(pkg.price).toLocaleString('id-ID');
-                            return `
-                            <div onclick="Profile.selectVipPackageItem('${pkg.id}')" 
-                                 id="vip-pkg-card-${pkg.id}"
-                                 class="p-3.5 sm:p-4 rounded-2xl border-2 transition-all cursor-pointer relative flex items-center justify-between group active:scale-[0.99] ${isSel ? 'bg-[#181a24] border-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.25)]' : 'bg-[#12141c]/90 border-white/10 hover:border-white/20'}">
-                                
-                                <div class="min-w-0 pr-2">
-                                    <div class="flex items-center gap-2 flex-wrap">
-                                        <h4 class="text-sm sm:text-base font-black ${isSel ? 'text-white' : 'text-white/90'} leading-tight">${Profile.escapeHtml(pkg.name)}</h4>
-                                        ${pkg.badge ? `
-                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold ${pkg.popular ? 'bg-amber-400 text-black' : (pkg.badge.includes('Hemat') ? 'bg-rose-500 text-white' : 'bg-white/15 text-amber-300')} leading-none">
-                                            ${Profile.escapeHtml(pkg.badge)}
-                                        </span>
-                                        ` : ''}
-                                    </div>
-                                    <p class="text-xs text-white/50 mt-1 leading-snug">
-                                        ${Profile.escapeHtml(pkg.duration)} ${pkg.discount ? `• <span class="text-amber-300/90 font-medium">${Profile.escapeHtml(pkg.discount)}</span>` : ''}
-                                    </p>
+                <div class="space-y-2">
+                    ${packages.map(function(pkg) {
+                        var isSel = (Profile.selectedVipPackage && Profile.selectedVipPackage.id === pkg.id);
+                        var priceFmt = Number(pkg.price).toLocaleString('id-ID');
+                        return `
+                        <div onclick="Profile.selectVipPackageItem('${pkg.id}')" 
+                             id="vip-pkg-card-${pkg.id}"
+                             class="p-3.5 px-4 rounded-2xl border transition-all cursor-pointer relative flex items-center justify-between group active:scale-[0.99] ${isSel ? 'bg-[#181a24] border-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.2)]' : 'bg-[#11131a] border-white/10 hover:border-white/20'}">
+                            
+                            <div class="min-w-0 pr-3">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <h4 class="text-sm font-black ${isSel ? 'text-white' : 'text-white/90'} leading-tight">${Profile.escapeHtml(pkg.name)}</h4>
+                                    ${pkg.badge ? `
+                                    <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold ${pkg.popular ? 'bg-amber-400 text-black' : (pkg.badge.includes('Hemat') ? 'bg-rose-500 text-white' : 'bg-white/15 text-amber-300')} leading-none">
+                                        ${Profile.escapeHtml(pkg.badge)}
+                                    </span>
+                                    ` : ''}
                                 </div>
+                                <p class="text-xs text-white/50 mt-1 leading-tight">
+                                    ${Profile.escapeHtml(pkg.duration)} ${pkg.discount ? `• <span class="text-amber-300 font-medium">${Profile.escapeHtml(pkg.discount)}</span>` : ''}
+                                </p>
+                            </div>
 
-                                <div class="shrink-0 flex items-center gap-3">
-                                    <div class="text-right">
-                                        <span class="text-base sm:text-lg font-black ${isSel ? 'text-yellow-400' : 'text-white'}">Rp ${priceFmt}</span>
-                                    </div>
-                                    <!-- Radio Selection Icon -->
-                                    <div id="vip-pkg-check-${pkg.id}" class="w-5 h-5 rounded-full flex items-center justify-center transition-all ${isSel ? 'border-2 border-yellow-400' : 'border-2 border-white/30'}">
-                                        <div class="w-2.5 h-2.5 rounded-full ${isSel ? 'bg-yellow-400' : 'bg-transparent'}"></div>
-                                    </div>
+                            <div class="shrink-0 flex items-center gap-3">
+                                <div class="text-right">
+                                    <span class="text-sm sm:text-base font-black ${isSel ? 'text-yellow-400' : 'text-white'}">Rp ${priceFmt}</span>
+                                </div>
+                                <!-- Radio Selection Icon -->
+                                <div id="vip-pkg-check-${pkg.id}" class="w-5 h-5 rounded-full flex items-center justify-center transition-all ${isSel ? 'border-2 border-yellow-400' : 'border border-white/30'}">
+                                    <div class="w-2.5 h-2.5 rounded-full ${isSel ? 'bg-yellow-400' : 'bg-transparent'}"></div>
                                 </div>
                             </div>
-                            `;
-                        }).join('')}
-                    </div>
-                </div>
-
-                <!-- TOMBOL CTA UTAMA (Beli Paket [Nama Paket] [Harga]) -->
-                <div class="pt-1">
-                    <button type="button" 
-                            id="vip-main-buy-btn"
-                            onclick="Profile.proceedToQrisPayment()" 
-                            class="w-full py-3.5 px-5 rounded-2xl bg-[#ffd700] hover:bg-[#ffdf33] active:scale-95 text-black font-black text-sm sm:text-base flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(255,215,0,0.4)] transition-all cursor-pointer">
-                        <i data-lucide="hand-coins" class="w-5 h-5 stroke-[2.5]"></i>
-                        <span id="vip-main-buy-btn-text">
-                            Beli ${Profile.selectedVipPackage ? Profile.selectedVipPackage.name : 'Paket'} (Rp ${Profile.selectedVipPackage ? Number(Profile.selectedVipPackage.price).toLocaleString('id-ID') : '0'})
-                        </span>
-                    </button>
-                </div>
-
-                <!-- BAGIAN 2: KEUNTUNGAN MEMBER VIP (MusifyStar Benefits Card) -->
-                <div class="p-4 rounded-2xl bg-[#11131c] border border-white/10 space-y-3 mt-2">
-                    <div class="text-[11px] font-black uppercase tracking-wider text-amber-400">
-                        KEUNTUNGAN MEMBER VIP
-                    </div>
-
-                    <div class="space-y-3">
-                        ${benefits.map(function(ben) {
-                            return `
-                            <div class="flex items-start gap-3">
-                                <div class="w-7 h-7 rounded-lg bg-amber-400/15 border border-amber-400/30 flex items-center justify-center text-amber-300 shrink-0 mt-0.5">
-                                    <i data-lucide="${ben.icon || 'check-circle'}" class="w-3.5 h-3.5"></i>
-                                </div>
-                                <div class="min-w-0">
-                                    <h4 class="text-xs font-bold text-white leading-tight">${Profile.escapeHtml(ben.title)}</h4>
-                                    <p class="text-[11px] text-white/50 leading-relaxed mt-0.5">${Profile.escapeHtml(ben.desc)}</p>
-                                </div>
-                            </div>
-                            `;
-                        }).join('')}
-                    </div>
-                </div>
-
-                <!-- BAGIAN KLAIM KODE VOUCHER VIP (Sesuai Foto 2 & Foto 3) -->
-                <div class="pt-2 pb-2 flex flex-col items-center">
-                    <button type="button" onclick="Profile.toggleVoucherClaimInput()" id="btn-toggle-voucher" class="text-amber-400 hover:text-amber-300 font-bold text-xs sm:text-[13px] inline-flex items-center gap-2 cursor-pointer transition-all active:scale-95 py-1">
-                        <i id="toggle-voucher-icon" data-lucide="package" class="w-4 h-4 text-amber-400"></i>
-                        <span id="toggle-voucher-text">Punya Kode Voucher VIP? Klaim di Sini</span>
-                    </button>
-                    <div id="voucher-claim-container" class="hidden w-full mt-3">
-                        <div class="flex items-center gap-2.5">
-                            <input type="text" id="voucher-code-input" placeholder="Contoh: VIP1BULAN" onkeydown="if(event.key==='Enter') Profile.redeemVoucherCode()" class="flex-1 bg-black/60 border border-white/20 focus:border-amber-400 rounded-2xl px-4 py-3 text-xs sm:text-sm text-white placeholder-white/40 uppercase font-mono tracking-wider outline-none transition-all shadow-inner">
-                            <button type="button" id="btn-redeem-voucher" onclick="Profile.redeemVoucherCode()" class="px-5 sm:px-6 py-3 rounded-2xl bg-white/10 hover:bg-amber-400 hover:text-black active:scale-95 text-white/90 font-bold text-xs sm:text-sm transition-all cursor-pointer shrink-0 border border-white/10 shadow-md">
-                                Klaim
-                            </button>
                         </div>
-                    </div>
+                        `;
+                    }).join('')}
+                </div>
+            </div>
+
+            <!-- TOMBOL CTA UTAMA -->
+            <div class="pt-1">
+                <button type="button" 
+                        id="vip-main-buy-btn"
+                        onclick="Profile.proceedToQrisPayment()" 
+                        class="w-full py-3.5 px-5 rounded-2xl bg-[#ffd700] hover:bg-[#ffdf33] active:scale-95 text-black font-black text-sm sm:text-base flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(255,215,0,0.35)] transition-all cursor-pointer">
+                    <i data-lucide="hand-coins" class="w-5 h-5 stroke-[2.5]"></i>
+                    <span id="vip-main-buy-btn-text">
+                        Beli ${Profile.selectedVipPackage ? Profile.selectedVipPackage.name : 'Paket'} (Rp ${Profile.selectedVipPackage ? Number(Profile.selectedVipPackage.price).toLocaleString('id-ID') : '0'})
+                    </span>
+                </button>
+            </div>
+
+            <!-- BAGIAN 2: KEUNTUNGAN MEMBER VIP -->
+            <div class="p-4 rounded-2xl bg-[#11131a] border border-white/10 space-y-3">
+                <div class="text-xs font-black uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                    <i data-lucide="shield-check" class="w-4 h-4 text-amber-400"></i>
+                    <span>KEUNTUNGAN MEMBER VIP</span>
                 </div>
 
-                <!-- Tombol Bantuan Admin via WhatsApp -->
-                <div class="pt-1 pb-3 text-center">
-                    <button type="button" onclick="Profile.openWhatsAppSupport('Halo Admin MusifyStar, saya ingin konsultasi atau membeli paket VIP.')" class="text-[11px] text-white/40 hover:text-amber-300 font-medium inline-flex items-center gap-1.5 hover:underline cursor-pointer transition-all">
-                        <i data-lucide="help-circle" class="w-3 h-3"></i>
-                        <span>Butuh bantuan pembayaran? Hubungi Admin via WhatsApp</span>
-                    </button>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    ${benefits.map(function(ben) {
+                        return `
+                        <div class="flex items-start gap-3 p-2.5 rounded-xl bg-white/[0.02] border border-white/5">
+                            <div class="w-7 h-7 rounded-lg bg-amber-400/15 border border-amber-400/30 flex items-center justify-center text-amber-300 shrink-0 mt-0.5">
+                                <i data-lucide="${ben.icon || 'check-circle'}" class="w-4 h-4"></i>
+                            </div>
+                            <div class="min-w-0">
+                                <h4 class="text-xs font-bold text-white leading-tight">${Profile.escapeHtml(ben.title)}</h4>
+                                <p class="text-[11px] text-white/50 leading-relaxed mt-0.5">${Profile.escapeHtml(ben.desc)}</p>
+                            </div>
+                        </div>
+                        `;
+                    }).join('')}
                 </div>
+            </div>
+
+            <!-- BAGIAN KLAIM KODE VOUCHER VIP -->
+            <div class="p-4 rounded-2xl bg-[#11131a] border border-white/10 flex flex-col items-center text-center space-y-2">
+                <button type="button" onclick="Profile.toggleVoucherClaimInput()" id="btn-toggle-voucher" class="text-amber-400 hover:text-amber-300 font-bold text-xs inline-flex items-center gap-2 cursor-pointer transition-all active:scale-95">
+                    <i id="toggle-voucher-icon" data-lucide="package" class="w-4 h-4 text-amber-400"></i>
+                    <span id="toggle-voucher-text">Punya Kode Voucher VIP? Klaim di Sini</span>
+                </button>
+                <div id="voucher-claim-container" class="hidden w-full mt-2">
+                    <div id="voucher-status-msg" class="hidden mb-2.5 p-2.5 px-3.5 rounded-xl text-xs font-bold text-center transition-all shadow-md"></div>
+                    <div class="flex items-center gap-2 max-w-md mx-auto">
+                        <input type="text" id="voucher-code-input" placeholder="Contoh: VIP1BULAN" oninput="var msg=gid('voucher-status-msg'); if(msg && !this.value.trim()){ msg.className='hidden mb-2.5 p-2.5 px-3.5 rounded-xl text-xs font-bold text-center transition-all shadow-md'; }" onkeydown="if(event.key==='Enter') Profile.redeemVoucherCode()" class="flex-1 bg-black/60 border border-white/20 focus:border-amber-400 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder-white/40 uppercase font-mono tracking-wider outline-none transition-all shadow-inner">
+                        <button type="button" id="btn-redeem-voucher" onclick="Profile.redeemVoucherCode()" class="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-amber-400 hover:text-black active:scale-95 text-white/90 font-bold text-xs transition-all cursor-pointer shrink-0 border border-white/10 shadow-md">
+                            Klaim
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tombol Bantuan Admin via WhatsApp -->
+            <div class="pt-1 pb-4 text-center">
+                <button type="button" onclick="Profile.openWhatsAppSupport('Halo Admin MusifyStar, saya ingin konsultasi atau membeli paket VIP.')" class="text-xs text-white/50 hover:text-amber-300 font-medium inline-flex items-center gap-1.5 hover:underline cursor-pointer transition-all">
+                    <i data-lucide="help-circle" class="w-3.5 h-3.5"></i>
+                    <span>Butuh bantuan pembayaran? Hubungi Admin via WhatsApp</span>
+                </button>
             </div>
         </div>
         `;
@@ -502,15 +518,15 @@ var Profile = {
             if (!card) return;
 
             if (pkg.id === pkgId) {
-                card.className = 'p-3.5 sm:p-4 rounded-2xl border-2 transition-all cursor-pointer relative flex items-center justify-between group active:scale-[0.99] bg-[#181a24] border-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.25)]';
+                card.className = 'p-3.5 px-4 rounded-2xl border transition-all cursor-pointer relative flex items-center justify-between group active:scale-[0.99] bg-[#181a24] border-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.2)]';
                 if (check) {
                     check.className = 'w-5 h-5 rounded-full flex items-center justify-center transition-all border-2 border-yellow-400';
                     check.innerHTML = '<div class="w-2.5 h-2.5 rounded-full bg-yellow-400"></div>';
                 }
             } else {
-                card.className = 'p-3.5 sm:p-4 rounded-2xl border-2 transition-all cursor-pointer relative flex items-center justify-between group active:scale-[0.99] bg-[#12141c]/90 border-white/10 hover:border-white/20';
+                card.className = 'p-3.5 px-4 rounded-2xl border transition-all cursor-pointer relative flex items-center justify-between group active:scale-[0.99] bg-[#11131a] border-white/10 hover:border-white/20';
                 if (check) {
-                    check.className = 'w-5 h-5 rounded-full flex items-center justify-center transition-all border-2 border-white/30';
+                    check.className = 'w-5 h-5 rounded-full flex items-center justify-center transition-all border border-white/30';
                     check.innerHTML = '<div class="w-2.5 h-2.5 rounded-full bg-transparent"></div>';
                 }
             }
@@ -586,81 +602,78 @@ var Profile = {
 
         var modal = document.createElement('div');
         modal.id = 'musifystar-qris-payment-modal';
-        modal.className = 'fixed inset-0 z-[800] flex items-center justify-center p-3 sm:p-4 bg-black/90 backdrop-blur-xl animate-fade-in select-none';
+        modal.className = 'fixed inset-0 z-[800] bg-[#07090e] flex flex-col select-none overflow-hidden h-[100dvh] max-h-[100dvh] animate-fade-in';
         modal.innerHTML = `
-        <div class="w-full max-w-sm sm:max-w-md bg-[#0e1017] border border-amber-400/40 rounded-3xl shadow-2xl overflow-hidden relative flex flex-col max-h-[92vh]" style="box-shadow: 0 25px 60px -15px rgba(245,158,11,0.35);">
-            
-            <!-- Header Bar -->
-            <div class="p-4 border-b border-white/10 flex items-center justify-between bg-gradient-to-r from-amber-500/15 via-yellow-500/10 to-transparent shrink-0">
-                <div class="flex items-center gap-3">
-                    <button type="button" onclick="gid('musifystar-qris-payment-modal')?.remove(); Profile.openVipPackagesModal('${pkg.id || ''}');" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-white transition cursor-pointer" title="Kembali ke Paket">
-                        <i data-lucide="arrow-left" class="w-4 h-4"></i>
-                    </button>
-                    <div>
-                        <h3 class="text-sm sm:text-base font-black text-white leading-tight">Pembayaran QRIS</h3>
-                        <p class="text-[11px] text-white/50 leading-tight mt-0.5">Scan kode di bawah dengan aplikasi apa saja</p>
-                    </div>
+        <!-- Full Page Sticky Header -->
+        <div class="pt-5 sm:pt-6 pb-3.5 px-4 shrink-0 border-b border-white/10 shadow-2xl transition-all flex items-center justify-between" style="background: linear-gradient(180deg, rgba(13, 15, 22, 0.92) 0%, rgba(13, 15, 22, 0.98) 100%), url('/banner.png') center/cover no-repeat; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);">
+            <div class="flex items-center gap-3">
+                <button type="button" onclick="gid('musifystar-qris-payment-modal')?.remove(); Profile.openVipPackagesModal('${pkg.id || ''}');" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white flex items-center justify-center active:scale-95 transition-all cursor-pointer shadow-sm" title="Kembali ke Paket">
+                    <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                </button>
+                <div>
+                    <h1 class="text-lg sm:text-xl font-black text-white tracking-tight drop-shadow-md leading-tight">Pembayaran QRIS</h1>
+                    <p class="text-white/60 text-xs leading-tight mt-0.5">Scan kode di bawah dengan m-Banking atau E-Wallet</p>
                 </div>
-                <button type="button" onclick="gid('musifystar-qris-payment-modal')?.remove()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-white/70 hover:text-white transition cursor-pointer">
-                    <i data-lucide="x" class="w-4 h-4"></i>
+            </div>
+            <button type="button" onclick="gid('musifystar-qris-payment-modal')?.remove()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-white/70 hover:text-white transition-all cursor-pointer">
+                <i data-lucide="x" class="w-4 h-4"></i>
+            </button>
+        </div>
+
+        <!-- Full Page Scrollable Body -->
+        <div class="flex-1 overflow-y-auto overscroll-contain hide-scrollbar p-4 sm:p-6 max-w-2xl mx-auto w-full pb-32 space-y-4">
+            
+            <!-- Package Summary Tagihan -->
+            <div class="p-4 rounded-2xl bg-white/[0.04] border border-amber-400/30 flex items-center justify-between gap-3">
+                <div class="min-w-0">
+                    <span class="text-xs text-amber-300 font-mono font-bold uppercase tracking-wider block">${Profile.escapeHtml(pkg.name)} (${Profile.escapeHtml(pkg.duration)})</span>
+                    <span class="text-lg sm:text-xl font-black text-white block mt-0.5">Total: Rp ${priceFmt}</span>
+                </div>
+                <span class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-extrabold font-mono flex items-center gap-1.5 shrink-0">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> MENUNGGU
+                </span>
+            </div>
+
+            <!-- Foto QRIS Penuh / Kosong jika admin belum menambahkan -->
+            <div class="flex flex-col items-center justify-center w-full my-1">
+                ${isCustomQrisUploaded ? `
+                <div class="w-full max-w-md flex items-center justify-center overflow-hidden rounded-2xl bg-black/40 border border-white/10 shadow-2xl relative p-2">
+                    <img id="qris-payment-image" src="${qrisUrl}" class="w-full h-auto max-h-[520px] object-contain select-none rounded-2xl block" alt="Barcode QRIS MusifyStar" onerror="this.parentElement.innerHTML='<p class=\\'text-xs text-rose-400 p-4 text-center\\'>Gagal memuat barcode QRIS</p>'">
+                </div>
+                ` : `
+                <div class="w-full max-w-md p-6 bg-black/40 border border-dashed border-amber-400/30 rounded-2xl text-center space-y-2">
+                    <i data-lucide="image-off" class="w-10 h-10 text-amber-400 mx-auto"></i>
+                    <p class="text-xs font-bold text-white">Foto / Barcode QRIS Belum Ditambahkan oleh Admin</p>
+                    <p class="text-[10px] text-white/50">Admin belum menambahkan foto QRIS. Silakan hubungi Admin via WhatsApp untuk melakukan pembayaran & konfirmasi VIP.</p>
+                    <button type="button" onclick="Profile.openWhatsAppSupport('Halo Admin MusifyStar, saya ingin bayar paket ' + encodeURIComponent('${pkg.name}') + ' (Rp ${priceFmt})')" class="mt-2 py-2 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-black font-extrabold text-xs inline-flex items-center gap-1.5 transition active:scale-95 cursor-pointer shadow-md">
+                        <i data-lucide="message-circle" class="w-4 h-4"></i>
+                        <span>Chat Admin via WhatsApp</span>
+                    </button>
+                </div>
+                `}
+            </div>
+
+            <!-- Tombol Unduh Barcode QRIS -->
+            <div>
+                <button type="button" id="btn-download-qris-modal" onclick="Profile.downloadQRIS('${qrisUrl}', 'QRIS-MusifyStar.png')" class="w-full py-3.5 px-4 rounded-2xl bg-white/10 hover:bg-white/15 border border-white/20 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 active:scale-95 transition cursor-pointer shadow-md">
+                    <i data-lucide="download" class="w-4 h-4 text-amber-300"></i>
+                    <span>Unduh Barcode QRIS</span>
                 </button>
             </div>
 
-            <!-- Scrollable Content -->
-            <div class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 hide-scrollbar">
-                
-                <!-- Package Summary Tagihan -->
-                <div class="p-3.5 rounded-2xl bg-white/[0.04] border border-amber-400/30 flex items-center justify-between gap-3">
-                    <div class="min-w-0">
-                        <span class="text-[10px] text-amber-300 font-mono font-bold uppercase tracking-wider block">${Profile.escapeHtml(pkg.name)} (${Profile.escapeHtml(pkg.duration)})</span>
-                        <span class="text-base sm:text-lg font-black text-white block mt-0.5">Total: Rp ${priceFmt}</span>
-                    </div>
-                    <span class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-extrabold font-mono flex items-center gap-1 shrink-0">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> MENUNGGU
-                    </span>
-                </div>
-
-                <!-- Foto QRIS Penuh / Kosong jika admin belum menambahkan -->
-                <div class="flex flex-col items-center justify-center w-full my-1">
-                    ${isCustomQrisUploaded ? `
-                    <div class="w-full max-w-[340px] sm:max-w-[380px] flex items-center justify-center overflow-hidden rounded-2xl bg-black/40 border border-white/10 shadow-2xl relative">
-                        <img id="qris-payment-image" src="${qrisUrl}" class="w-full h-auto max-h-[520px] object-contain select-none rounded-2xl block" alt="Barcode QRIS MusifyStar" onerror="this.parentElement.innerHTML='<p class=\\'text-xs text-rose-400 p-4 text-center\\'>Gagal memuat barcode QRIS</p>'">
-                    </div>
-                    ` : `
-                    <div class="w-full p-6 bg-black/40 border border-dashed border-amber-400/30 rounded-2xl text-center space-y-2">
-                        <i data-lucide="image-off" class="w-10 h-10 text-amber-400 mx-auto"></i>
-                        <p class="text-xs font-bold text-white">Foto / Barcode QRIS Belum Ditambahkan oleh Admin</p>
-                        <p class="text-[10px] text-white/50">Admin belum menambahkan foto QRIS. Silakan hubungi Admin via WhatsApp untuk melakukan pembayaran & konfirmasi VIP.</p>
-                        <button type="button" onclick="Profile.openWhatsAppSupport('Halo Admin MusifyStar, saya ingin bayar paket ' + encodeURIComponent('${pkg.name}') + ' (Rp ${priceFmt})')" class="mt-2 py-2 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-black font-extrabold text-xs inline-flex items-center gap-1.5 transition active:scale-95 cursor-pointer shadow-md">
-                            <i data-lucide="message-circle" class="w-4 h-4"></i>
-                            <span>Chat Admin via WhatsApp</span>
-                        </button>
-                    </div>
-                    `}
-                </div>
-
-                <!-- Tombol Unduh Barcode QRIS (File Asli PNG tanpa .html) -->
-                <div>
-                    <button type="button" id="btn-download-qris-modal" onclick="Profile.downloadQRIS('${qrisUrl}', 'QRIS-MusifyStar.png')" class="w-full py-3 px-4 rounded-xl bg-white/10 hover:bg-white/15 border border-white/20 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 active:scale-95 transition cursor-pointer shadow-md">
-                        <i data-lucide="download" class="w-4 h-4 text-amber-300"></i>
-                        <span>Unduh Barcode QRIS</span>
-                    </button>
-                </div>
-
-                <!-- Panduan Langkah Cepat -->
-                <div class="p-3.5 rounded-2xl bg-white/[0.03] border border-white/10 space-y-1.5 text-xs text-white/70">
-                    <span class="text-[10px] font-bold text-white/40 uppercase tracking-wider block mb-1">Langkah Pembayaran:</span>
-                    <p class="text-[11px]">1. Buka aplikasi M-Banking atau E-Wallet di HP Anda</p>
-                    <p class="text-[11px]">2. Pilih menu <strong>Scan / Bayar QRIS</strong> dan scan barcode di atas</p>
-                    <p class="text-[11px]">3. Masukkan nominal tepat <strong>Rp ${priceFmt}</strong> dan selesaikan pembayaran</p>
-                    <p class="text-[11px]">4. Klik tombol konfirmasi di bawah untuk aktivasi akun VIP Anda</p>
-                </div>
+            <!-- Panduan Langkah Cepat -->
+            <div class="p-4 rounded-2xl bg-white/[0.03] border border-white/10 space-y-2 text-xs text-white/70">
+                <span class="text-xs font-bold text-white/40 uppercase tracking-wider block mb-1">Langkah Pembayaran:</span>
+                <p class="text-xs">1. Buka aplikasi M-Banking atau E-Wallet di HP Anda</p>
+                <p class="text-xs">2. Pilih menu <strong>Scan / Bayar QRIS</strong> dan scan barcode di atas</p>
+                <p class="text-xs">3. Masukkan nominal tepat <strong>Rp ${priceFmt}</strong> dan selesaikan pembayaran</p>
+                <p class="text-xs">4. Klik tombol konfirmasi di bawah untuk aktivasi akun VIP Anda</p>
             </div>
 
             <!-- Footer Action: Konfirmasi Pembayaran -->
-            <div class="p-4 border-t border-white/10 bg-[#07080c] flex flex-col gap-2 shrink-0">
-                <button type="button" onclick="Profile.openPaymentConfirmDialog('${pkg.id || ''}', '${Profile.escapeHtml(pkg.name)}', ${pkg.price}, '${Profile.escapeHtml(pkg.duration)}')" class="w-full py-3 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-600 hover:to-teal-500 text-black font-extrabold text-xs sm:text-sm flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer shadow-[0_0_20px_rgba(16,185,129,0.35)]">
-                    <i data-lucide="check-circle-2" class="w-4 h-4 text-black"></i>
+            <div class="pt-2">
+                <button type="button" onclick="Profile.openPaymentConfirmDialog('${pkg.id || ''}', '${Profile.escapeHtml(pkg.name)}', ${pkg.price}, '${Profile.escapeHtml(pkg.duration)}')" class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-600 hover:to-teal-500 text-black font-extrabold text-sm sm:text-base flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer shadow-[0_0_20px_rgba(16,185,129,0.35)]">
+                    <i data-lucide="check-circle-2" class="w-5 h-5 text-black"></i>
                     <span>Saya Sudah Bayar (Konfirmasi VIP)</span>
                 </button>
             </div>
@@ -10673,19 +10686,34 @@ var Profile = {
 
     async redeemVoucherCode() {
         var inputEl = gid('voucher-code-input');
+        var msgBox = gid('voucher-status-msg');
         var code = (inputEl?.value || '').trim().toUpperCase();
+
+        var showMsg = function(text, isSuccess) {
+            if (msgBox) {
+                msgBox.className = isSuccess 
+                    ? 'block mb-2.5 p-2.5 px-3.5 rounded-xl text-xs font-bold text-emerald-300 bg-emerald-500/20 border border-emerald-500/30 text-center transition-all shadow-md'
+                    : 'block mb-2.5 p-2.5 px-3.5 rounded-xl text-xs font-bold text-rose-300 bg-rose-500/20 border border-rose-500/30 text-center transition-all shadow-md';
+                msgBox.innerHTML = (isSuccess ? '<i data-lucide="check-circle" class="w-3.5 h-3.5 inline mr-1"></i> ' : '<i data-lucide="x-circle" class="w-3.5 h-3.5 inline mr-1"></i> ') + Profile.escapeHtml(text);
+                if (window.lucide) lucide.createIcons();
+            }
+            if (typeof showToast === 'function') showToast(text);
+        };
+
         if (!code) {
-            if (typeof showToast === 'function') showToast('Silakan masukkan kode voucher VIP terlebih dahulu!');
+            showMsg('Maaf, silakan masukkan kode voucher VIP terlebih dahulu!', false);
             return;
         }
 
         var user = (typeof Auth !== 'undefined' && Auth.currentUser) ? Auth.currentUser : null;
         if (!user) {
-            if (typeof showToast === 'function') showToast('Silakan login ke akun Anda terlebih dahulu untuk mengklaim kode voucher VIP!');
-            gid('musifystar-vip-packages-modal')?.remove();
-            if (typeof Auth !== 'undefined' && typeof Auth.openAuthModal === 'function') {
-                Auth.openAuthModal();
-            }
+            showMsg('Silakan login ke akun Anda terlebih dahulu untuk mengklaim kode voucher VIP!', false);
+            setTimeout(function() {
+                gid('musifystar-vip-packages-modal')?.remove();
+                if (typeof Auth !== 'undefined' && typeof Auth.openAuthModal === 'function') {
+                    Auth.openAuthModal();
+                }
+            }, 1200);
             return;
         }
 
@@ -10710,9 +10738,8 @@ var Profile = {
             var data = await res.json();
 
             if (data && data.status) {
-                if (typeof showToast === 'function') {
-                    showToast(data.message || '🎉 Selamat! Kode voucher berhasil diklaim!');
-                }
+                var succMsg = data.message || '🎉 Selamat! Kode voucher valid & VIP Anda berhasil diklaim!';
+                showMsg(succMsg, true);
 
                 // Update current user live
                 if (data.user) {
@@ -10728,20 +10755,18 @@ var Profile = {
                     Auth.updateHeaderUI();
                 }
 
-                // Close VIP modal and refresh profile modal if open
-                gid('musifystar-vip-packages-modal')?.remove();
-                if (gid('user-profile-modal')) {
-                    Auth.openUserProfileModal();
-                }
+                setTimeout(function() {
+                    gid('musifystar-vip-packages-modal')?.remove();
+                    if (gid('user-profile-modal')) {
+                        Auth.openUserProfileModal();
+                    }
+                }, 1500);
             } else {
-                if (typeof showToast === 'function') {
-                    showToast(data?.message || 'Kode voucher tidak valid atau sudah kedaluwarsa.');
-                }
+                var errMsg = data?.message || 'Maaf, kode voucher tidak valid. Silakan coba lagi!';
+                showMsg(errMsg, false);
             }
         } catch (e) {
-            if (typeof showToast === 'function') {
-                showToast('Terjadi kesalahan koneksi saat mengklaim voucher: ' + e.message);
-            }
+            showMsg('Maaf, kode voucher tidak valid atau terjadi masalah koneksi. Coba lagi!', false);
         } finally {
             if (btn) {
                 btn.disabled = false;

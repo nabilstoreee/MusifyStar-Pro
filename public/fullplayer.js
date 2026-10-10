@@ -542,6 +542,11 @@ var FullPlayer={
         void fp.offsetHeight;
         fp.style.transform='translate3d(0,0,0)';
         if(typeof MP !== 'undefined' && MP.hide) MP.hide();
+        try {
+            if (typeof window.requestMusifyScreenWakeLock === 'function') {
+                window.requestMusifyScreenWakeLock();
+            }
+        } catch(e) {}
         requestAnimationFrame(function(){
             try{
                 if(typeof UU==='function') UU();

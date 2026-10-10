@@ -20,6 +20,16 @@ var Profile = {
     appVersion: 'v1.0.0',
     appReleaseName: 'MusifyStar Official',
 
+    escapeHtml(str) {
+        return esHtml(str);
+    },
+    escapeJs(t) {
+        return esJs(t);
+    },
+    escapeAttr(str) {
+        return esHtml(str);
+    },
+
     async fetchAppVersion() {
         try {
             var res = await fetch('/api/version');
@@ -340,53 +350,100 @@ var Profile = {
 
         var modal = document.createElement('div');
         modal.id = 'musifystar-vip-packages-modal';
-        modal.className = 'fixed inset-0 z-[750] flex items-center justify-center p-3 sm:p-4 bg-black/90 backdrop-blur-xl animate-fade-in select-none';
+        modal.className = 'fixed inset-0 z-[750] flex items-center justify-center p-2.5 sm:p-4 bg-black/90 backdrop-blur-xl animate-fade-in select-none';
         modal.innerHTML = `
-        <div class="w-full max-w-lg bg-[#0e1017] border border-amber-400/40 rounded-3xl shadow-2xl overflow-hidden relative flex flex-col max-h-[92vh]" style="box-shadow: 0 25px 60px -15px rgba(245,158,11,0.35);">
+        <div class="w-full max-w-md sm:max-w-lg bg-[#0e1017] border border-amber-400/40 rounded-3xl shadow-2xl overflow-hidden relative flex flex-col max-h-[94vh]" style="box-shadow: 0 25px 60px -15px rgba(245,158,11,0.35);">
             <!-- Close Button -->
             <button onclick="gid('musifystar-vip-packages-modal')?.remove()" class="absolute top-4 right-4 z-20 w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-white/70 hover:text-white transition-all cursor-pointer">
                 <i data-lucide="x" class="w-4 h-4"></i>
             </button>
 
-            <!-- Header Card (Desain Mewah VIP) -->
-            <div class="pt-6 pb-4 px-5 sm:px-6 border-b border-white/10 bg-gradient-to-b from-amber-500/20 via-yellow-500/10 to-transparent relative shrink-0">
-                <div class="flex items-center gap-3.5">
-                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-400 via-yellow-300 to-amber-500 flex items-center justify-center text-black font-black shadow-lg shadow-amber-500/40 shrink-0">
-                        <i data-lucide="crown" class="w-6 h-6 fill-black"></i>
-                    </div>
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <h2 class="text-lg sm:text-xl font-black text-white tracking-tight">MusifyStar VIP Membership</h2>
-                            <span class="text-[9px] font-black px-2 py-0.5 rounded-full bg-amber-400 text-black uppercase tracking-wider font-mono">PREMIUM</span>
-                        </div>
-                        <p class="text-xs text-amber-200/80 mt-0.5 font-medium">Buka semua fitur VIP eksklusif & dengarkan musik tanpa batas</p>
-                    </div>
+            <!-- Header Card (Desain Mewah IceBeats / MusifyStar VIP Member) -->
+            <div class="pt-6 pb-3 px-5 sm:px-6 text-center relative shrink-0">
+                <!-- Glowing Golden Crown Icon in Circle -->
+                <div class="w-14 h-14 rounded-full bg-gradient-to-tr from-amber-500 to-yellow-400 flex items-center justify-center text-black mx-auto shadow-[0_0_25px_rgba(245,158,11,0.5)] mb-3">
+                    <i data-lucide="crown" class="w-7 h-7 fill-black stroke-black"></i>
                 </div>
+                <h2 class="text-xl sm:text-2xl font-black text-amber-400 tracking-tight leading-tight">MusifyStar VIP Member</h2>
+                <p class="text-xs text-white/70 mt-1 max-w-sm mx-auto leading-relaxed">Buka semua fitur VIP eksklusif, kualitas audio HD, bebas border animasi profil, dan nikmati musik tanpa batas!</p>
             </div>
 
-            <!-- Scrollable Body (Keuntungan Member + Pilihan Paket) -->
-            <div class="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-4 hide-scrollbar">
+            <!-- Scrollable Body (Pilihan Paket Langganan di Atas, Tombol Beli di Tengah, Keuntungan di Bawah) -->
+            <div class="flex-1 overflow-y-auto px-4 sm:px-6 py-2 space-y-4 hide-scrollbar">
                 
-                <!-- BAGIAN 1: KEUNTUNGAN MEMBER MUSIFYSTAR (Foto 3 Style) -->
-                <div class="p-4 rounded-2xl bg-white/[0.03] border border-amber-400/20 space-y-3">
-                    <div class="flex items-center justify-between border-b border-white/5 pb-2">
-                        <span class="text-xs font-black uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
-                            <i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i>
-                            <span>Keuntungan Member MusifyStar</span>
-                        </span>
-                        <span class="text-[10px] text-white/40 font-mono">6 Benefit</span>
+                <!-- BAGIAN 1: PILIH PAKET LANGGANAN (Vertical Stack Cards ala Screenshot) -->
+                <div class="space-y-2.5">
+                    <div class="text-[11px] font-black uppercase tracking-wider text-amber-400/90 px-1">
+                        PILIH PAKET LANGGANAN
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div class="space-y-2.5">
+                        ${packages.map(function(pkg) {
+                            var isSel = (Profile.selectedVipPackage && Profile.selectedVipPackage.id === pkg.id);
+                            var priceFmt = Number(pkg.price).toLocaleString('id-ID');
+                            return `
+                            <div onclick="Profile.selectVipPackageItem('${pkg.id}')" 
+                                 id="vip-pkg-card-${pkg.id}"
+                                 class="p-3.5 sm:p-4 rounded-2xl border-2 transition-all cursor-pointer relative flex items-center justify-between group active:scale-[0.99] ${isSel ? 'bg-[#181a24] border-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.25)]' : 'bg-[#12141c]/90 border-white/10 hover:border-white/20'}">
+                                
+                                <div class="min-w-0 pr-2">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <h4 class="text-sm sm:text-base font-black ${isSel ? 'text-white' : 'text-white/90'} leading-tight">${Profile.escapeHtml(pkg.name)}</h4>
+                                        ${pkg.badge ? `
+                                        <span class="px-2 py-0.5 rounded-md text-[10px] font-extrabold ${pkg.popular ? 'bg-amber-400 text-black' : (pkg.badge.includes('Hemat') ? 'bg-rose-500 text-white' : 'bg-white/15 text-amber-300')} leading-none">
+                                            ${Profile.escapeHtml(pkg.badge)}
+                                        </span>
+                                        ` : ''}
+                                    </div>
+                                    <p class="text-xs text-white/50 mt-1 leading-snug">
+                                        ${Profile.escapeHtml(pkg.duration)} ${pkg.discount ? `• <span class="text-amber-300/90 font-medium">${Profile.escapeHtml(pkg.discount)}</span>` : ''}
+                                    </p>
+                                </div>
+
+                                <div class="shrink-0 flex items-center gap-3">
+                                    <div class="text-right">
+                                        <span class="text-base sm:text-lg font-black ${isSel ? 'text-yellow-400' : 'text-white'}">Rp ${priceFmt}</span>
+                                    </div>
+                                    <!-- Radio Selection Icon -->
+                                    <div id="vip-pkg-check-${pkg.id}" class="w-5 h-5 rounded-full flex items-center justify-center transition-all ${isSel ? 'border-2 border-yellow-400' : 'border-2 border-white/30'}">
+                                        <div class="w-2.5 h-2.5 rounded-full ${isSel ? 'bg-yellow-400' : 'bg-transparent'}"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+
+                <!-- TOMBOL CTA UTAMA (Beli Paket [Nama Paket] [Harga]) -->
+                <div class="pt-1">
+                    <button type="button" 
+                            id="vip-main-buy-btn"
+                            onclick="Profile.proceedToQrisPayment()" 
+                            class="w-full py-3.5 px-5 rounded-2xl bg-[#ffd700] hover:bg-[#ffdf33] active:scale-95 text-black font-black text-sm sm:text-base flex items-center justify-center gap-2 shadow-[0_0_25px_rgba(255,215,0,0.4)] transition-all cursor-pointer">
+                        <i data-lucide="hand-coins" class="w-5 h-5 stroke-[2.5]"></i>
+                        <span id="vip-main-buy-btn-text">
+                            Beli ${Profile.selectedVipPackage ? Profile.selectedVipPackage.name : 'Paket'} (Rp ${Profile.selectedVipPackage ? Number(Profile.selectedVipPackage.price).toLocaleString('id-ID') : '0'})
+                        </span>
+                    </button>
+                </div>
+
+                <!-- BAGIAN 2: KEUNTUNGAN MEMBER VIP (MusifyStar Benefits Card) -->
+                <div class="p-4 rounded-2xl bg-[#11131c] border border-white/10 space-y-3 mt-2">
+                    <div class="text-[11px] font-black uppercase tracking-wider text-amber-400">
+                        KEUNTUNGAN MEMBER VIP
+                    </div>
+
+                    <div class="space-y-3">
                         ${benefits.map(function(ben) {
                             return `
-                            <div class="p-2.5 rounded-xl bg-black/40 border border-white/5 flex items-start gap-2.5 hover:border-amber-400/30 transition-all">
+                            <div class="flex items-start gap-3">
                                 <div class="w-7 h-7 rounded-lg bg-amber-400/15 border border-amber-400/30 flex items-center justify-center text-amber-300 shrink-0 mt-0.5">
                                     <i data-lucide="${ben.icon || 'check-circle'}" class="w-3.5 h-3.5"></i>
                                 </div>
                                 <div class="min-w-0">
                                     <h4 class="text-xs font-bold text-white leading-tight">${Profile.escapeHtml(ben.title)}</h4>
-                                    <p class="text-[10px] text-white/50 leading-tight mt-0.5">${Profile.escapeHtml(ben.desc)}</p>
+                                    <p class="text-[11px] text-white/50 leading-relaxed mt-0.5">${Profile.escapeHtml(ben.desc)}</p>
                                 </div>
                             </div>
                             `;
@@ -394,70 +451,29 @@ var Profile = {
                     </div>
                 </div>
 
-                <!-- BAGIAN 2: PILIHAN PAKET BERLANGGANAN (Interactive Selection) -->
-                <div class="space-y-2.5">
-                    <div class="flex items-center justify-between px-1">
-                        <span class="text-xs font-black uppercase tracking-wider text-white/80 flex items-center gap-1.5">
-                            <i data-lucide="layers" class="w-4 h-4 text-amber-400"></i>
-                            <span>Pilih Paket Berlangganan</span>
-                        </span>
-                        <span class="text-[10px] text-amber-300 font-bold">Pilih salah satu</span>
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                        ${packages.map(function(pkg) {
-                            var isSel = (Profile.selectedVipPackage && Profile.selectedVipPackage.id === pkg.id);
-                            var priceFmt = Number(pkg.price).toLocaleString('id-ID');
-                            var origFmt = pkg.originalPrice ? Number(pkg.originalPrice).toLocaleString('id-ID') : '';
-                            return `
-                            <div onclick="Profile.selectVipPackageItem('${pkg.id}')" 
-                                 id="vip-pkg-card-${pkg.id}"
-                                 class="p-3.5 rounded-2xl border-2 transition-all cursor-pointer relative flex flex-col justify-between group active:scale-[0.98] ${isSel ? 'bg-gradient-to-b from-amber-500/20 via-yellow-500/10 to-transparent border-amber-400 shadow-[0_0_25px_rgba(245,158,11,0.3)]' : 'bg-white/[0.03] hover:bg-white/[0.06] border-white/10 hover:border-white/20'}">
-                                
-                                ${pkg.badge ? `
-                                <div class="absolute -top-2.5 right-3 px-2 py-0.5 rounded-full ${pkg.popular ? 'bg-gradient-to-r from-amber-400 to-yellow-500 text-black shadow-md shadow-amber-500/40' : 'bg-white/15 text-amber-300 border border-amber-400/30'} text-[9px] font-black uppercase tracking-wider">
-                                    ${pkg.badge}
-                                </div>
-                                ` : ''}
-
-                                <div>
-                                    <div class="flex items-center justify-between mb-1">
-                                        <h4 class="text-xs font-black text-white group-hover:text-amber-300 transition-colors">${Profile.escapeHtml(pkg.name)}</h4>
-                                        <div id="vip-pkg-check-${pkg.id}" class="w-5 h-5 rounded-full flex items-center justify-center ${isSel ? 'bg-amber-400 text-black' : 'border border-white/20 text-transparent'}">
-                                            <i data-lucide="check" class="w-3 h-3 stroke-[3]"></i>
-                                        </div>
-                                    </div>
-                                    <p class="text-[11px] text-white/50 font-medium">${Profile.escapeHtml(pkg.duration)}</p>
-                                </div>
-
-                                <div class="mt-3 pt-2 border-t border-white/5 flex items-baseline justify-between">
-                                    <div>
-                                        <span class="text-base sm:text-lg font-black text-amber-400">Rp ${priceFmt}</span>
-                                        ${origFmt ? `<span class="text-[10px] text-white/30 line-through ml-1.5 font-mono">Rp ${origFmt}</span>` : ''}
-                                    </div>
-                                    ${pkg.discount ? `
-                                    <span class="text-[9px] font-extrabold px-1.5 py-0.2 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-mono">${pkg.discount}</span>
-                                    ` : ''}
-                                </div>
-                            </div>
-                            `;
-                        }).join('')}
+                <!-- BAGIAN KLAIM KODE VOUCHER VIP (Sesuai Foto 2 & Foto 3) -->
+                <div class="pt-2 pb-2 flex flex-col items-center">
+                    <button type="button" onclick="Profile.toggleVoucherClaimInput()" id="btn-toggle-voucher" class="text-amber-400 hover:text-amber-300 font-bold text-xs sm:text-[13px] inline-flex items-center gap-2 cursor-pointer transition-all active:scale-95 py-1">
+                        <i id="toggle-voucher-icon" data-lucide="package" class="w-4 h-4 text-amber-400"></i>
+                        <span id="toggle-voucher-text">Punya Kode Voucher VIP? Klaim di Sini</span>
+                    </button>
+                    <div id="voucher-claim-container" class="hidden w-full mt-3">
+                        <div class="flex items-center gap-2.5">
+                            <input type="text" id="voucher-code-input" placeholder="Contoh: VIP1BULAN" onkeydown="if(event.key==='Enter') Profile.redeemVoucherCode()" class="flex-1 bg-black/60 border border-white/20 focus:border-amber-400 rounded-2xl px-4 py-3 text-xs sm:text-sm text-white placeholder-white/40 uppercase font-mono tracking-wider outline-none transition-all shadow-inner">
+                            <button type="button" id="btn-redeem-voucher" onclick="Profile.redeemVoucherCode()" class="px-5 sm:px-6 py-3 rounded-2xl bg-white/10 hover:bg-amber-400 hover:text-black active:scale-95 text-white/90 font-bold text-xs sm:text-sm transition-all cursor-pointer shrink-0 border border-white/10 shadow-md">
+                                Klaim
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Bottom CTA Button (Beli Paket -> Foto 5 QRIS) -->
-            <div class="p-4 sm:p-5 border-t border-white/10 bg-[#07080c] flex items-center justify-between gap-3 shrink-0">
-                <div class="min-w-0">
-                    <span class="text-[10px] text-white/50 uppercase font-mono block">Paket Terpilih</span>
-                    <p id="vip-selected-pkg-summary" class="text-xs sm:text-sm font-black text-white truncate">
-                        ${Profile.selectedVipPackage ? `${Profile.selectedVipPackage.name} • Rp ${Number(Profile.selectedVipPackage.price).toLocaleString('id-ID')}` : 'Pilih paket'}
-                    </p>
+                <!-- Tombol Bantuan Admin via WhatsApp -->
+                <div class="pt-1 pb-3 text-center">
+                    <button type="button" onclick="Profile.openWhatsAppSupport('Halo Admin MusifyStar, saya ingin konsultasi atau membeli paket VIP.')" class="text-[11px] text-white/40 hover:text-amber-300 font-medium inline-flex items-center gap-1.5 hover:underline cursor-pointer transition-all">
+                        <i data-lucide="help-circle" class="w-3 h-3"></i>
+                        <span>Butuh bantuan pembayaran? Hubungi Admin via WhatsApp</span>
+                    </button>
                 </div>
-                <button type="button" onclick="Profile.proceedToQrisPayment()" class="shrink-0 px-5 sm:px-6 py-3 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-500 hover:to-yellow-500 text-black font-black text-xs sm:text-sm flex items-center gap-2 active:scale-95 transition-all cursor-pointer shadow-[0_0_25px_rgba(245,158,11,0.45)]">
-                    <i data-lucide="qr-code" class="w-4 h-4 text-black"></i>
-                    <span>Beli Paket Sekarang</span>
-                </button>
             </div>
         </div>
         `;
@@ -470,9 +486,9 @@ var Profile = {
         var config = Profile.cachedPaymentConfig;
         var packages = (config && config.packages) || [
             { id: 'pkg_1week', name: 'Paket Mingguan', duration: '7 Hari', price: 7000 },
-            { id: 'pkg_1month', name: 'Paket Bulanan', duration: '30 Hari', price: 19000 },
-            { id: 'pkg_3months', name: 'Paket 3 Bulan', duration: '90 Hari', price: 49000 },
-            { id: 'pkg_permanent', name: 'Paket Lifetime', duration: 'Permanen (Selamanya)', price: 99000 }
+            { id: 'pkg_1month', name: 'Paket 1 Bulan', duration: '30 Hari', price: 19000, popular: true },
+            { id: 'pkg_5months', name: 'Paket 5 Bulan', duration: '150 Hari', price: 69000 },
+            { id: 'pkg_permanent', name: 'Paket Permanen (Lifetime)', duration: 'Permanen (Selamanya)', price: 99000 }
         ];
         var found = packages.find(function(p){ return p.id === pkgId; });
         if (!found) return;
@@ -486,17 +502,25 @@ var Profile = {
             if (!card) return;
 
             if (pkg.id === pkgId) {
-                card.className = 'p-3.5 rounded-2xl border-2 transition-all cursor-pointer relative flex flex-col justify-between group active:scale-[0.98] bg-gradient-to-b from-amber-500/20 via-yellow-500/10 to-transparent border-amber-400 shadow-[0_0_25px_rgba(245,158,11,0.3)]';
+                card.className = 'p-3.5 sm:p-4 rounded-2xl border-2 transition-all cursor-pointer relative flex items-center justify-between group active:scale-[0.99] bg-[#181a24] border-yellow-400 shadow-[0_0_20px_rgba(250,204,21,0.25)]';
                 if (check) {
-                    check.className = 'w-5 h-5 rounded-full flex items-center justify-center bg-amber-400 text-black';
+                    check.className = 'w-5 h-5 rounded-full flex items-center justify-center transition-all border-2 border-yellow-400';
+                    check.innerHTML = '<div class="w-2.5 h-2.5 rounded-full bg-yellow-400"></div>';
                 }
             } else {
-                card.className = 'p-3.5 rounded-2xl border-2 transition-all cursor-pointer relative flex flex-col justify-between group active:scale-[0.98] bg-white/[0.03] hover:bg-white/[0.06] border-white/10 hover:border-white/20';
+                card.className = 'p-3.5 sm:p-4 rounded-2xl border-2 transition-all cursor-pointer relative flex items-center justify-between group active:scale-[0.99] bg-[#12141c]/90 border-white/10 hover:border-white/20';
                 if (check) {
-                    check.className = 'w-5 h-5 rounded-full flex items-center justify-center border border-white/20 text-transparent';
+                    check.className = 'w-5 h-5 rounded-full flex items-center justify-center transition-all border-2 border-white/30';
+                    check.innerHTML = '<div class="w-2.5 h-2.5 rounded-full bg-transparent"></div>';
                 }
             }
         });
+
+        // Update Text Tombol Beli Utama
+        var buyBtnText = gid('vip-main-buy-btn-text');
+        if (buyBtnText) {
+            buyBtnText.innerText = `Beli ${found.name} (Rp ${Number(found.price).toLocaleString('id-ID')})`;
+        }
 
         var summary = gid('vip-selected-pkg-summary');
         if (summary) {
@@ -1123,11 +1147,12 @@ var Profile = {
     isCurrentUserVip() {
         var u = (typeof Auth !== 'undefined' && Auth.currentUser) ? Auth.currentUser : null;
         if (!u) return false;
-        var adminTok = (typeof Profile !== 'undefined' && Profile.getAdminToken) ? Profile.getAdminToken() : (sessionStorage.getItem('musifystar_admin_token') || localStorage.getItem('musifystar_admin_token') || '');
         var email = String(u.email || u.rawEmail || '').toLowerCase().trim();
         var username = String(u.username || '').toLowerCase().trim();
-        if (email === 'jrnabil570@gmail.com' || username === 'nabil' || u.role === 'admin' || !!adminTok) return true;
-        if (u.isPremium || u.is_premium) {
+        if (email === 'jrnabil570@gmail.com' || username === 'nabil') return true;
+        if (u.vipTier === 'none') return false;
+        var isTierActive = Boolean(u.vipTier && u.vipTier !== 'none');
+        if (u.isPremium || u.is_premium || isTierActive) {
             if (u.vipExpiresAt && Date.now() > u.vipExpiresAt) return false;
             return true;
         }
@@ -1151,8 +1176,9 @@ var Profile = {
             try { localStorage.setItem('nanzz_auto_next', String(S.autoNext)); } catch(e){}
         }
 
-        // 2. Putar di Latar Belakang (Keep Playing in Background) - Khusus VIP
-        window._musifyBackgroundPlay = isVip ? (settings.backgroundPlay !== false) : false;
+        // 2. Putar di Latar Belakang (Keep Playing in Background)
+        // Default aktif untuk semua pengguna (dan bisa dimatikan manual via pengaturan jika diinginkan)
+        window._musifyBackgroundPlay = (settings.backgroundPlay !== false);
 
         // 3. Layar Tetap Menyala (Keep Screen Awake) - Khusus VIP
         window._musifyKeepScreenAwake = isVip ? (!!settings.keepScreenAwake) : false;
@@ -1362,28 +1388,23 @@ var Profile = {
 
         var modal = document.createElement('div');
         modal.id = 'musifystar-settings-modal';
-        modal.className = 'fixed inset-0 z-[650] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md animate-fade-in select-none';
+        modal.className = 'fixed inset-0 z-[650] bg-[#07090e] flex flex-col select-none overflow-hidden h-[100dvh] max-h-[100dvh] animate-fade-in';
         modal.innerHTML = `
-        <div class="w-full max-w-sm sm:max-w-md bg-[#161922] border border-white/15 rounded-2xl shadow-2xl overflow-hidden relative flex flex-col max-h-[90vh]">
-            
-            <!-- Header Modal Pengaturan -->
-            <div class="p-4 sm:p-5 pb-3 sm:pb-4 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
-                <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0">
-                        <i data-lucide="settings" class="w-5 h-5"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-base font-bold text-white tracking-tight leading-tight">Pengaturan</h2>
-                        <p class="text-[11px] text-white/50 leading-tight mt-0.5">Preferensi & pemutar musik MusifyStar</p>
-                    </div>
-                </div>
-                <button onclick="Profile.closeSettingsModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 active:scale-90 flex items-center justify-center text-white/70 hover:text-white transition-all cursor-pointer">
-                    <i data-lucide="x" class="w-4 h-4"></i>
+        <!-- Full Page Sticky Header -->
+        <div class="pt-6 sm:pt-7 pb-3.5 px-4 shrink-0 border-b border-white/10 shadow-2xl transition-all flex items-center justify-between" style="background: linear-gradient(180deg, rgba(13, 15, 22, 0.88) 0%, rgba(13, 15, 22, 0.97) 100%), url('/banner.png') center/cover no-repeat; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);">
+            <div class="flex items-center gap-3">
+                <button onclick="Profile.closeSettingsModal()" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white flex items-center justify-center active:scale-95 transition-all cursor-pointer shadow-sm" title="Kembali">
+                    <i data-lucide="arrow-left" class="w-5 h-5"></i>
                 </button>
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-black text-white tracking-tight drop-shadow-md leading-tight">Pengaturan</h1>
+                    <p class="text-white/50 text-[11px] leading-tight mt-0.5">Preferensi & pemutar musik MusifyStar</p>
+                </div>
             </div>
+        </div>
 
-            <!-- Body Modal Pengaturan -->
-            <div class="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 hide-scrollbar">
+        <!-- Full Page Scrollable Body -->
+        <div class="flex-1 overflow-y-auto overscroll-contain hide-scrollbar p-4 sm:p-6 max-w-2xl mx-auto w-full pb-36 space-y-4">
                 
                 <!-- VIP Membership Status Banner -->
                 ${!isVip ? `
@@ -1597,15 +1618,7 @@ var Profile = {
                         </div>
                     </div>
                 </div>
-
-                <!-- Tombol Selesai / Tutup -->
-                <div class="pt-2">
-                    <button onclick="Profile.closeSettingsModal()" class="w-full py-2.5 px-4 rounded-xl bg-white/10 hover:bg-white/15 active:scale-95 text-white text-xs font-semibold transition-all border border-white/10 cursor-pointer flex items-center justify-center gap-1.5">
-                        <span>Tutup</span>
-                    </button>
-                </div>
-            </div>
-        </div>`;
+            </div>`;
 
         modal.onclick = function(e) {
             if (e.target === modal) Profile.closeSettingsModal();
@@ -2105,6 +2118,11 @@ var Profile = {
                         <span>Berikan Akses VIP</span>
                         <span id="admin-vip-count-badge" class="hidden text-[10px] bg-amber-400 text-black px-1.5 py-0.2 rounded-full font-black">0</span>
                     </button>
+                    <button id="admin-tab-btn-vouchers" onclick="Profile.setAdminTab('vouchers')" class="px-3.5 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1.5 cursor-pointer bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-400/40 hover:text-white whitespace-nowrap shadow-sm shadow-amber-500/20">
+                        <i data-lucide="ticket" class="w-4 h-4 text-amber-400"></i>
+                        <span>Kelola Kode Voucher VIP</span>
+                        <span id="admin-vouchers-count-badge" class="hidden text-[10px] bg-amber-400 text-black px-1.5 py-0.2 rounded-full font-black">0</span>
+                    </button>
                     <button id="admin-tab-btn-bans" onclick="Profile.setAdminTab('bans')" class="px-3 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1.5 cursor-pointer bg-white/5 hover:bg-white/10 text-white/70 hover:text-white whitespace-nowrap">
                         <i data-lucide="shield-alert" class="w-4 h-4 text-rose-400"></i>
                         <span>Atur Sanksi & Ban</span>
@@ -2259,6 +2277,16 @@ var Profile = {
                         </div>
                     </div>
                 </div>
+
+                <!-- TAB 15: VOUCHER MANAGEMENT (ISI & KELOLA KODE VOUCHER VIP) -->
+                <div id="admin-view-vouchers" class="hidden space-y-4">
+                    <div id="admin-vouchers-container" class="space-y-4">
+                        <div class="text-center py-12 text-white/50 space-y-2">
+                            <i data-lucide="loader-2" class="w-8 h-8 animate-spin mx-auto text-amber-400"></i>
+                            <p class="text-xs">Memuat data kode voucher VIP...</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Footer with Logout -->
@@ -2273,15 +2301,20 @@ var Profile = {
         document.body.appendChild(modal);
         lucide.createIcons();
 
-        // Setup auto-refresh ticker every 15 seconds
+        // Setup auto-refresh ticker for global counters
         if (Profile.adminRefreshInterval) clearInterval(Profile.adminRefreshInterval);
         Profile.adminRefreshInterval = setInterval(function() {
             if (gid('musifystar-admin-modal')) {
-                Profile.refreshAdminData(true);
+                // Jangan refresh otomatis jika user sedang mengetik atau di tab form (vouchers, dsb) agar tidak hilang sendiri saat didiamkan
+                var activeEl = document.activeElement;
+                var isTyping = activeEl && (activeEl.tagName === 'INPUT' || activeEl.tagName === 'TEXTAREA' || activeEl.tagName === 'SELECT');
+                if (!isTyping && Profile.adminActiveTab !== 'vouchers') {
+                    Profile.refreshAdminData(true);
+                }
             } else {
                 clearInterval(Profile.adminRefreshInterval);
             }
-        }, 15000);
+        }, 30000);
 
         // Load active tab
         Profile.setAdminTab(Profile.adminActiveTab || 'analytics');
@@ -2298,6 +2331,7 @@ var Profile = {
         var btnSecurity = gid('admin-tab-btn-security');
         var btnUsers = gid('admin-tab-btn-users');
         var btnVip = gid('admin-tab-btn-vip');
+        var btnVouchers = gid('admin-tab-btn-vouchers');
         var btnBans = gid('admin-tab-btn-bans');
         var btnPayment = gid('admin-tab-btn-payment');
         var btnMessages = gid('admin-tab-btn-messages');
@@ -2313,6 +2347,7 @@ var Profile = {
         var viewSecurity = gid('admin-view-security');
         var viewUsers = gid('admin-view-users');
         var viewVip = gid('admin-view-vip');
+        var viewVouchers = gid('admin-view-vouchers');
         var viewBans = gid('admin-view-bans');
         var viewPayment = gid('admin-view-payment');
         var viewMessages = gid('admin-view-messages');
@@ -2334,6 +2369,7 @@ var Profile = {
         if (btnSecurity) btnSecurity.className = tab === 'security' ? activeBtnClass : inactiveBtnClass;
         if (btnUsers) btnUsers.className = tab === 'users' ? activeBtnClass : inactiveBtnClass;
         if (btnVip) btnVip.className = tab === 'vip' ? activeVipBtnClass : inactiveVipBtnClass;
+        if (btnVouchers) btnVouchers.className = tab === 'vouchers' ? activeVipBtnClass : inactiveVipBtnClass;
         if (btnBans) btnBans.className = tab === 'bans' ? activeBtnClass : inactiveBtnClass;
         if (btnPayment) btnPayment.className = tab === 'payment' ? activeBtnClass : inactiveBtnClass;
         if (btnMessages) btnMessages.className = tab === 'messages' ? activeBtnClass : inactiveBtnClass;
@@ -2350,6 +2386,7 @@ var Profile = {
         if (viewSecurity) viewSecurity.classList.toggle('hidden', tab !== 'security');
         if (viewUsers) viewUsers.classList.toggle('hidden', tab !== 'users');
         if (viewVip) viewVip.classList.toggle('hidden', tab !== 'vip');
+        if (viewVouchers) viewVouchers.classList.toggle('hidden', tab !== 'vouchers');
         if (viewBans) viewBans.classList.toggle('hidden', tab !== 'bans');
         if (viewPayment) viewPayment.classList.toggle('hidden', tab !== 'payment');
         if (viewMessages) viewMessages.classList.toggle('hidden', tab !== 'messages');
@@ -2375,6 +2412,8 @@ var Profile = {
             Profile.loadAdminUsersList();
         } else if (tab === 'vip') {
             Profile.loadAdminVipTab();
+        } else if (tab === 'vouchers') {
+            Profile.loadAdminVouchersTab();
         } else if (tab === 'bans') {
             Profile.loadAdminBansList();
         } else if (tab === 'payment') {
@@ -2400,6 +2439,7 @@ var Profile = {
             } else if (Profile.adminActiveTab === 'borders') {
                 Profile.loadAdminBordersList(true);
             }
+            // Vouchers tab TIDAK di-refresh saat silent background ticker agar form ketikan/pilihan tidak terganggu atau hilang saat didiamkan
             Profile.checkFeedbackBadgeQuietly();
             if (typeof Profile.checkSiteUpdateBadgeQuietly === 'function') {
                 Profile.checkSiteUpdateBadgeQuietly();
@@ -2426,6 +2466,8 @@ var Profile = {
             Profile.loadAdminUsersList();
         } else if (Profile.adminActiveTab === 'vip') {
             Profile.loadAdminVipTab();
+        } else if (Profile.adminActiveTab === 'vouchers') {
+            Profile.loadAdminVouchersTab();
         } else if (Profile.adminActiveTab === 'bans') {
             Profile.loadAdminBansList();
         } else if (Profile.adminActiveTab === 'payment') {
@@ -5347,10 +5389,11 @@ var Profile = {
                             <div class="flex items-center gap-1.5 flex-wrap">
                                 <h4 class="text-sm font-bold text-white truncate">${u.username}</h4>
                                 <span class="global-verified-badge-container inline-flex items-center"></span>
-                                ${u.isPremium ? (
+                                ${(u.isPremium && u.vipTier && u.vipTier !== 'none') ? (
                                     u.vipTier === '1month' ? `<span class="px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30 font-bold text-[9px] flex items-center gap-1"><i data-lucide="crown" class="w-2.5 h-2.5"></i> VIP 1 Bln</span>` :
+                                    (u.vipTier === '2months' ? `<span class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold text-[9px] flex items-center gap-1"><i data-lucide="crown" class="w-2.5 h-2.5"></i> VIP 2 Bln</span>` :
                                     (u.vipTier === '5months' ? `<span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold text-[9px] flex items-center gap-1"><i data-lucide="crown" class="w-2.5 h-2.5"></i> VIP 5 Bln</span>` :
-                                    `<span class="px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-500 text-black font-black text-[9px] flex items-center gap-0.5 shadow-sm"><i data-lucide="crown" class="w-2.5 h-2.5 fill-black"></i> VIP Permanen</span>`)
+                                    `<span class="px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-500 text-black font-black text-[9px] flex items-center gap-0.5 shadow-sm"><i data-lucide="crown" class="w-2.5 h-2.5 fill-black"></i> VIP Permanen</span>`))
                                 ) : `<span class="px-2 py-0.5 rounded-full bg-white/5 text-white/40 border border-white/10 text-[9px] font-semibold">Gratis</span>`}
                                 ${u.borderName ? `<span class="px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-300 border border-purple-500/30 font-semibold text-[9px] flex items-center gap-0.5"><i data-lucide="shield" class="w-2.5 h-2.5"></i> ${u.borderName}</span>` : ''}
                             </div>
@@ -6104,75 +6147,51 @@ var Profile = {
                     </div>
                 </div>
 
-                <!-- Form Pilihan Paket VIP -->
-                <div class="space-y-2">
-                    <label class="text-xs font-bold text-white/80 block">Pilih Hak Akses VIP & Durasi:</label>
-                    
-                    <div class="grid grid-cols-1 gap-2.5">
-                        <!-- Option 1: 1 Bulan -->
-                        <label class="p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 bg-white/[0.02] hover:bg-white/[0.05] border-white/10 has-[:checked]:border-sky-400 has-[:checked]:bg-sky-500/10 has-[:checked]:shadow-[0_0_20px_rgba(56,189,248,0.2)]">
-                            <input type="radio" name="admin_vip_tier_radio" value="1month" ${currentTier === '1month' ? 'checked' : ''} class="mt-1 w-4 h-4 accent-sky-400 cursor-pointer">
-                            <div class="min-w-0 flex-1">
-                                <div class="flex items-center justify-between gap-2">
-                                    <span class="text-xs font-bold text-white flex items-center gap-1.5">
-                                        <i data-lucide="star" class="w-3.5 h-3.5 text-sky-400"></i> VIP 1 Bulan (30 Hari)
-                                    </span>
-                                    <span class="text-[9px] px-2 py-0.5 rounded-full bg-sky-400/20 text-sky-300 font-bold border border-sky-400/30">Platinum & Master</span>
-                                </div>
-                                <p class="text-[11px] text-white/60 mt-1">Bisa pakai <strong class="text-sky-300 font-semibold">Border Platinum & Master</strong>. Bonus akses semua fitur (Kualitas Audio, Layar Menyala, Gestur Usap, Putar Latar Belakang).</p>
-                            </div>
-                        </label>
+                <!-- Form Pilihan Paket VIP & Trial (Bisa Pilihan Dropdown & Ketikan) -->
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-bold text-white/90">2. Paket VIP / Durasi:</label>
+                        <span class="text-[10px] text-amber-300 font-semibold">Bisa dropdown & bisa ketik hari</span>
+                    </div>
 
-                        <!-- Option 2: 2 Bulan -->
-                        <label class="p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 bg-white/[0.02] hover:bg-white/[0.05] border-white/10 has-[:checked]:border-emerald-400 has-[:checked]:bg-emerald-500/10 has-[:checked]:shadow-[0_0_20px_rgba(52,211,153,0.2)]">
-                            <input type="radio" name="admin_vip_tier_radio" value="2months" ${currentTier === '2months' ? 'checked' : ''} class="mt-1 w-4 h-4 accent-emerald-400 cursor-pointer">
-                            <div class="min-w-0 flex-1">
-                                <div class="flex items-center justify-between gap-2">
-                                    <span class="text-xs font-bold text-white flex items-center gap-1.5">
-                                        <i data-lucide="shield" class="w-3.5 h-3.5 text-emerald-400"></i> VIP 2 Bulan (60 Hari)
-                                    </span>
-                                    <span class="text-[9px] px-2 py-0.5 rounded-full bg-emerald-400/20 text-emerald-300 font-bold border border-emerald-400/30">Platinum, Master & Legend</span>
-                                </div>
-                                <p class="text-[11px] text-white/60 mt-1">Bisa pakai <strong class="text-emerald-300 font-semibold">Border Platinum, Master, & Legend</strong>. Bonus akses semua fitur (Kualitas Audio, Layar Menyala, Gestur Usap, Putar Latar Belakang).</p>
-                            </div>
-                        </label>
+                    <!-- Pilihan Dropdown Sesuai Foto Kedua -->
+                    <div class="space-y-1.5">
+                        <label class="text-[11px] font-bold text-amber-300/90 block">Pilihan Paket & Durasi (Dropdown):</label>
+                        <select id="admin-vip-tier-select" 
+                                onchange="var v=this.value; var inp=gid('admin-vip-custom-days'); if(v==='1month'&&inp) inp.value=30; else if(v==='2months'&&inp) inp.value=60; else if(v==='5months'&&inp) inp.value=150; else if(v==='permanent'&&inp) inp.value=0; else if(v==='trial_1d'&&inp) inp.value=1; else if(v==='trial_3d'&&inp) inp.value=3; else if(v==='trial_7d'&&inp) inp.value=7; else if(v==='trial_14d'&&inp) inp.value=14; else if(v==='none'&&inp) inp.value='';" 
+                                class="w-full text-xs sm:text-sm py-2.5 px-3.5 bg-black/80 border border-white/20 focus:border-amber-400 rounded-xl text-white font-medium focus:outline-none transition-colors cursor-pointer">
+                            <option value="1month" ${currentTier === '1month' ? 'selected' : ''}>VIP 1 Bulan (30 Hari) • Platinum & Master</option>
+                            <option value="2months" ${currentTier === '2months' ? 'selected' : ''}>VIP 2 Bulan (60 Hari) • Platinum, Master & Legend</option>
+                            <option value="5months" ${currentTier === '5months' ? 'selected' : ''}>VIP 5 Bulan (150 Hari) • Semua Border Tier</option>
+                            <option value="permanent" ${currentTier === 'permanent' ? 'selected' : ''}>VIP Permanen (Selamanya) • Bebas Semua Border</option>
+                            <option value="trial_1d">Trial 1 Hari • Platinum</option>
+                            <option value="trial_3d">Trial 3 Hari • Platinum</option>
+                            <option value="trial_7d">Trial 7 Hari (1 Minggu) • Platinum</option>
+                            <option value="trial_14d">Trial 14 Hari (2 Minggu) • Platinum</option>
+                            <option value="custom">Ketik Durasi Hari Sendiri</option>
+                            <option value="none" ${currentTier === 'none' ? 'selected' : ''}>Nonaktifkan VIP (Akun Biasa / Free)</option>
+                        </select>
+                    </div>
 
-                        <!-- Option 3: 5 Bulan -->
-                        <label class="p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 bg-white/[0.02] hover:bg-white/[0.05] border-white/10 has-[:checked]:border-amber-400 has-[:checked]:bg-amber-500/10 has-[:checked]:shadow-[0_0_20px_rgba(245,158,11,0.2)]">
-                            <input type="radio" name="admin_vip_tier_radio" value="5months" ${currentTier === '5months' ? 'checked' : ''} class="mt-1 w-4 h-4 accent-amber-400 cursor-pointer">
-                            <div class="min-w-0 flex-1">
-                                <div class="flex items-center justify-between gap-2">
-                                    <span class="text-xs font-bold text-white flex items-center gap-1.5">
-                                        <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i> VIP 5 Bulan (150 Hari)
-                                    </span>
-                                    <span class="text-[9px] px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 font-bold border border-amber-400/30">Platinum, Master, Legend & Immortal</span>
-                                </div>
-                                <p class="text-[11px] text-white/60 mt-1">Bisa pakai <strong class="text-amber-300 font-semibold">Border Platinum, Master, Legend, & Immortal</strong>. Bonus akses semua fitur (Kualitas Audio, Layar Menyala, Gestur Usap, Putar Latar Belakang).</p>
-                            </div>
+                    <!-- KOLOM KETIKAN DURASI LANGSUNG (BISA KETIKAN HARI) -->
+                    <div class="p-3 rounded-2xl bg-black/40 border border-white/10 space-y-1.5">
+                        <label class="text-xs font-bold text-white/90 flex items-center justify-between">
+                            <span class="flex items-center gap-1.5">
+                                <i data-lucide="edit-3" class="w-3.5 h-3.5 text-amber-400"></i>
+                                <span>Ketik Durasi Hari Langsung (Bisa Ketikan):</span>
+                            </span>
+                            <span class="text-[10px] text-white/40">Ketik angka hari apa saja</span>
                         </label>
-
-                        <!-- Option 4: Permanen -->
-                        <label class="p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 bg-white/[0.02] hover:bg-white/[0.05] border-white/10 has-[:checked]:border-yellow-400 has-[:checked]:bg-yellow-500/15 has-[:checked]:shadow-[0_0_25px_rgba(234,179,8,0.25)]">
-                            <input type="radio" name="admin_vip_tier_radio" value="permanent" ${currentTier === 'permanent' ? 'checked' : ''} class="mt-1 w-4 h-4 accent-yellow-400 cursor-pointer">
-                            <div class="min-w-0 flex-1">
-                                <div class="flex items-center justify-between gap-2">
-                                    <span class="text-xs font-black text-amber-300 flex items-center gap-1.5">
-                                        <i data-lucide="crown" class="w-3.5 h-3.5 text-yellow-400"></i> VIP Permanen (Selamanya)
-                                    </span>
-                                    <span class="text-[9px] px-2 py-0.5 rounded-full bg-yellow-400/20 text-yellow-300 font-extrabold border border-yellow-400/30">SEMUA Border</span>
-                                </div>
-                                <p class="text-[11px] text-white/70 mt-1">Bebas memakai <strong class="text-amber-300 font-bold">SEMUA BORDER (Platinum, Master, Legend, Immortal)</strong> + semua fitur premium selamanya tanpa batas waktu.</p>
-                            </div>
-                        </label>
-
-                        <!-- Option 5: Nonaktifkan -->
-                        <label class="p-3 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 bg-white/[0.01] hover:bg-white/[0.04] border-white/5 has-[:checked]:border-rose-400/50 has-[:checked]:bg-rose-500/10">
-                            <input type="radio" name="admin_vip_tier_radio" value="none" ${currentTier === 'none' ? 'checked' : ''} class="mt-1 w-4 h-4 accent-rose-400 cursor-pointer">
-                            <div class="min-w-0 flex-1">
-                                <span class="text-xs font-bold text-white/80">Nonaktifkan VIP (Akun Gratis Biasa)</span>
-                                <p class="text-[11px] text-white/40 mt-0.5">Mencabut hak akses VIP dan melepas border profil pengguna.</p>
-                            </div>
-                        </label>
+                        <div class="flex items-center gap-2">
+                            <input type="number" 
+                                   id="admin-vip-custom-days" 
+                                   min="0" 
+                                   value="${currentTier === '1month' ? '30' : (currentTier === '2months' ? '60' : (currentTier === '5months' ? '150' : (currentTier === 'permanent' ? '0' : '30')))}" 
+                                   placeholder="Contoh: 7, 30, 90, 365, atau 0 untuk Permanen" 
+                                   oninput="var n=parseInt(this.value,10); var sel=gid('admin-vip-tier-select'); if(sel){ if(n===0) sel.value='permanent'; else if(n===30) sel.value='1month'; else if(n===60) sel.value='2months'; else if(n===150) sel.value='5months'; else if(n===1) sel.value='trial_1d'; else if(n===3) sel.value='trial_3d'; else if(n===7) sel.value='trial_7d'; else if(n===14) sel.value='trial_14d'; else sel.value='custom'; }"
+                                   class="flex-1 py-2 px-3.5 bg-black/80 border border-white/20 focus:border-amber-400 rounded-xl text-white font-mono font-bold text-xs focus:outline-none transition-colors" />
+                            <span class="text-xs text-white/60 font-bold shrink-0">Hari (0 = Permanen)</span>
+                        </div>
                     </div>
                 </div>
 
@@ -6233,8 +6252,29 @@ var Profile = {
             return;
         }
 
-        var selectedTier = document.querySelector('input[name="admin_vip_tier_radio"]:checked')?.value || 'none';
+        var selectEl = gid('admin-vip-tier-select');
+        var selectedTier = selectEl ? selectEl.value : (document.querySelector('input[name="admin_vip_tier_radio"]:checked')?.value || 'none');
         var selectedBorderOpt = document.querySelector('input[name="admin_vip_border_radio"]:checked')?.value || 'keep';
+        var customDaysInput = gid('admin-vip-custom-days');
+        var customDays = customDaysInput ? parseInt(customDaysInput.value, 10) : NaN;
+
+        var finalTier = selectedTier;
+        var durationDays = null;
+        if (selectedTier === 'trial_1d') { finalTier = '1month'; durationDays = 1; }
+        else if (selectedTier === 'trial_3d') { finalTier = '1month'; durationDays = 3; }
+        else if (selectedTier === 'trial_7d') { finalTier = '1month'; durationDays = 7; }
+        else if (selectedTier === 'trial_14d') { finalTier = '1month'; durationDays = 14; }
+        else if (selectedTier === 'permanent') { finalTier = 'permanent'; durationDays = 0; }
+        else if (selectedTier === 'custom') {
+            durationDays = !isNaN(customDays) ? customDays : 30;
+            finalTier = durationDays === 0 ? 'permanent' : (durationDays <= 30 ? '1month' : (durationDays <= 60 ? '2months' : '5months'));
+        }
+        else if (selectedTier !== 'none') {
+            if (!isNaN(customDays)) {
+                durationDays = customDays;
+                if (customDays === 0) finalTier = 'permanent';
+            }
+        }
 
         var btn = gid('admin-vip-submit-btn');
         if (btn) {
@@ -6250,8 +6290,11 @@ var Profile = {
                 id: userId,
                 username: username,
                 email: email,
-                vipTier: selectedTier
+                vipTier: finalTier
             };
+            if (durationDays !== null && !isNaN(durationDays)) {
+                payload.durationDays = durationDays;
+            }
             if (selectedBorderOpt !== 'keep') {
                 payload.border = selectedBorderOpt;
             }
@@ -6414,7 +6457,7 @@ var Profile = {
             // Update badge count di tab header
             var activeVips = users.filter(function(u) {
                 var isExp = u.vipExpiresAt && Date.now() > u.vipExpiresAt;
-                return (u.isPremium || (u.vipTier && u.vipTier !== 'none')) && !isExp;
+                return Boolean(u.isPremium && u.vipTier && u.vipTier !== 'none') && !isExp;
             });
 
             var badgeEl = gid('admin-vip-count-badge');
@@ -6452,7 +6495,7 @@ var Profile = {
 
         users.forEach(function(u) {
             var isExp = u.vipExpiresAt && Date.now() > u.vipExpiresAt;
-            var isVipActive = (u.isPremium || (u.vipTier && u.vipTier !== 'none')) && !isExp;
+            var isVipActive = Boolean(u.isPremium && u.vipTier && u.vipTier !== 'none') && !isExp;
             if (isVipActive) {
                 activeVipTotal++;
                 var t = String(u.vipTier || '').toLowerCase();
@@ -6646,7 +6689,7 @@ var Profile = {
                             <option value="" class="bg-[#161922] text-white/60">-- Pilih salah satu pengguna --</option>
                             ${users.map(function(u) {
                                 var isExp = u.vipExpiresAt && Date.now() > u.vipExpiresAt;
-                                var isVip = (u.isPremium || (u.vipTier && u.vipTier !== 'none')) && !isExp;
+                                var isVip = Boolean(u.isPremium && u.vipTier && u.vipTier !== 'none') && !isExp;
                                 var tierLabel = isVip ? (u.vipTier || 'VIP') : 'Gratis';
                                 return `<option value="${esHtml(u.id)}" data-username="${esHtml(u.username)}" data-email="${esHtml(u.email)}" data-tier="${esHtml(u.vipTier || 'none')}" data-border="${esHtml(u.border || '')}" class="bg-[#161922] text-white">@${esHtml(u.username)} (${esHtml(u.email)}) - Status: [${tierLabel}]</option>`;
                             }).join('')}
@@ -6853,7 +6896,7 @@ var Profile = {
             var borderEl = gid('admin-vip-form-selected-border');
             if (nameEl) nameEl.innerText = '@' + (u.username || '') + ' (' + (u.email || '') + ')';
             var isExp = u.vipExpiresAt && Date.now() > u.vipExpiresAt;
-            var isVip = (u.isPremium || (u.vipTier && u.vipTier !== 'none')) && !isExp;
+            var isVip = Boolean(u.isPremium && u.vipTier && u.vipTier !== 'none') && !isExp;
             if (statusEl) {
                 statusEl.innerHTML = isVip ? `Status: <span class="text-amber-300 font-bold">${u.vipTier || 'VIP'}</span> &bull; ${Profile.formatVipRemainingTime(u.vipExpiresAt)}` : 'Status: <span class="text-white/60">Gratis (Non-VIP)</span>';
             }
@@ -6863,7 +6906,7 @@ var Profile = {
         }
 
         // Set radio buttons according to user's current status if VIP
-        var currentTier = (u.vipTier || (u.isPremium ? 'permanent' : '1month')).toLowerCase();
+        var currentTier = isVip ? String(u.vipTier || 'permanent').toLowerCase() : 'none';
         var radio = document.querySelector(`input[name="admin_vip_tab_tier_radio"][value="${currentTier}"]`);
         if (radio) radio.checked = true;
     },
@@ -6998,7 +7041,7 @@ var Profile = {
 
         var filtered = users.filter(function(u) {
             var isExp = u.vipExpiresAt && Date.now() > u.vipExpiresAt;
-            var isVipActive = (u.isPremium || (u.vipTier && u.vipTier !== 'none')) && !isExp;
+            var isVipActive = Boolean(u.isPremium && u.vipTier && u.vipTier !== 'none') && !isExp;
             var t = String(u.vipTier || '').toLowerCase();
 
             // Filter tab check
@@ -7030,7 +7073,7 @@ var Profile = {
 
         return filtered.map(function(u) {
             var isExp = u.vipExpiresAt && Date.now() > u.vipExpiresAt;
-            var isVipActive = (u.isPremium || (u.vipTier && u.vipTier !== 'none')) && !isExp;
+            var isVipActive = Boolean(u.isPremium && u.vipTier && u.vipTier !== 'none') && !isExp;
             var avatarUrl = u.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(u.username)}`;
             var borderUrl = u.borderUrl || '';
 
@@ -10602,6 +10645,1197 @@ var Profile = {
         if (typeof Auth !== 'undefined' && typeof Auth.previewOrEquipBorder === 'function') {
             await Auth.previewOrEquipBorder(borderId);
             if (typeof showToast === 'function') showToast(`Border ${borderName} dipasang ke profil Anda`);
+        }
+    },
+
+    // ==============================================================
+    // KLAIM KODE VOUCHER VIP (USER SIDE)
+    // ==============================================================
+    toggleVoucherClaimInput() {
+        var container = gid('voucher-claim-container');
+        var textEl = gid('toggle-voucher-text');
+        var inputEl = gid('voucher-code-input');
+        if (!container || !textEl) return;
+
+        var isHidden = container.classList.contains('hidden');
+        if (isHidden) {
+            container.classList.remove('hidden');
+            textEl.innerText = 'Tutup Kode Voucher';
+            if (inputEl) {
+                setTimeout(function(){ inputEl.focus(); }, 50);
+            }
+        } else {
+            container.classList.add('hidden');
+            textEl.innerText = 'Punya Kode Voucher VIP? Klaim di Sini';
+        }
+        if (window.lucide) lucide.createIcons();
+    },
+
+    async redeemVoucherCode() {
+        var inputEl = gid('voucher-code-input');
+        var code = (inputEl?.value || '').trim().toUpperCase();
+        if (!code) {
+            if (typeof showToast === 'function') showToast('Silakan masukkan kode voucher VIP terlebih dahulu!');
+            return;
+        }
+
+        var user = (typeof Auth !== 'undefined' && Auth.currentUser) ? Auth.currentUser : null;
+        if (!user) {
+            if (typeof showToast === 'function') showToast('Silakan login ke akun Anda terlebih dahulu untuk mengklaim kode voucher VIP!');
+            gid('musifystar-vip-packages-modal')?.remove();
+            if (typeof Auth !== 'undefined' && typeof Auth.openAuthModal === 'function') {
+                Auth.openAuthModal();
+            }
+            return;
+        }
+
+        var btn = gid('btn-redeem-voucher');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i>';
+            if (window.lucide) lucide.createIcons();
+        }
+
+        try {
+            var res = await fetch('/api/vouchers?action=redeem', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    code: code,
+                    userId: user.id || user.userId,
+                    username: user.username,
+                    email: user.email || user.rawEmail
+                })
+            });
+            var data = await res.json();
+
+            if (data && data.status) {
+                if (typeof showToast === 'function') {
+                    showToast(data.message || '🎉 Selamat! Kode voucher berhasil diklaim!');
+                }
+
+                // Update current user live
+                if (data.user) {
+                    Auth.currentUser.isPremium = data.user.isPremium;
+                    Auth.currentUser.vipTier = data.user.vipTier;
+                    Auth.currentUser.vipExpiresAt = data.user.vipExpiresAt;
+                    if (data.user.border) {
+                        Auth.currentUser.border = data.user.border;
+                        Auth.currentUser.borderName = data.user.borderName;
+                        Auth.currentUser.borderUrl = data.user.borderUrl;
+                    }
+                    if (typeof Auth.saveUser === 'function') Auth.saveUser(Auth.currentUser);
+                    Auth.updateHeaderUI();
+                }
+
+                // Close VIP modal and refresh profile modal if open
+                gid('musifystar-vip-packages-modal')?.remove();
+                if (gid('user-profile-modal')) {
+                    Auth.openUserProfileModal();
+                }
+            } else {
+                if (typeof showToast === 'function') {
+                    showToast(data?.message || 'Kode voucher tidak valid atau sudah kedaluwarsa.');
+                }
+            }
+        } catch (e) {
+            if (typeof showToast === 'function') {
+                showToast('Terjadi kesalahan koneksi saat mengklaim voucher: ' + e.message);
+            }
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerText = 'Klaim';
+            }
+        }
+    },
+
+    // ==============================================================
+    // TAB 15: KELOLA KODE VOUCHER VIP (ADMIN CONTROL PANEL)
+    // ==============================================================
+    adminVouchersData: [],
+    adminVoucherSearchQuery: '',
+    adminVoucherFilter: 'all',
+
+    // Voucher creation interactive state
+    adminVchFormType: 'vip',       // 'vip' or 'trial'
+    adminVchVipPreset: '1month',   // '1month', '2months', '5months', 'permanent', 'custom'
+    adminVchVipDays: 30,
+    adminVchTrialPreset: '7d',     // '1d', '3d', '7d', '14d', 'custom'
+    adminVchTrialDays: 7,
+    adminVchQuotaPreset: '1',      // '1', '5', '10', '50', '100', 'unlimited', 'custom'
+    adminVchQuotaVal: 1,
+    adminVchExpiryPreset: 'none',  // 'none', '1d', '3d', '7d', '14d', '30d', 'custom'
+    adminVchExpiryVal: '',
+
+    async loadAdminVouchersTab(silent) {
+        var container = gid('admin-vouchers-container');
+        var token = Profile.getAdminToken();
+        if (!container || !token) return;
+
+        if (!silent) {
+            container.innerHTML = `
+            <div class="text-center py-12 text-white/50 space-y-2">
+                <i data-lucide="loader-2" class="w-8 h-8 animate-spin mx-auto text-amber-400"></i>
+                <p class="text-xs font-semibold">Memuat data kode voucher VIP...</p>
+            </div>`;
+            if (window.lucide) lucide.createIcons();
+        }
+
+        try {
+            var res = await fetch('/api/vouchers?action=admin_list', {
+                headers: { 'x-admin-token': token }
+            });
+            var data = await res.json();
+
+            if (data && data.status) {
+                Profile.adminVouchersData = Array.isArray(data.vouchers) ? data.vouchers : [];
+                
+                // Update count badge on tab button
+                var badgeEl = gid('admin-vouchers-count-badge');
+                if (badgeEl) {
+                    badgeEl.innerText = Profile.adminVouchersData.length;
+                    badgeEl.classList.remove('hidden');
+                }
+
+                // If silent auto-refresh and the form is already on screen, DO NOT re-render the whole form!
+                // Only update the list cards and live stats so open dropdowns/inputs never get dismissed!
+                if (silent && gid('admin-create-voucher-form')) {
+                    Profile.updateAdminVoucherStatsAndList(data);
+                } else {
+                    Profile.renderAdminVouchersTab(data);
+                }
+            } else {
+                if (!silent) {
+                    container.innerHTML = `
+                    <div class="p-6 text-center text-rose-400 space-y-2 bg-rose-500/10 border border-rose-500/20 rounded-2xl">
+                        <i data-lucide="alert-circle" class="w-8 h-8 mx-auto"></i>
+                        <p class="text-xs font-semibold">${data?.message || 'Gagal memuat voucher'}</p>
+                    </div>`;
+                    if (window.lucide) lucide.createIcons();
+                }
+            }
+        } catch (e) {
+            if (!silent) {
+                container.innerHTML = `
+                <div class="p-6 text-center text-rose-400 space-y-2 bg-rose-500/10 border border-rose-500/20 rounded-2xl">
+                    <i data-lucide="wifi-off" class="w-8 h-8 mx-auto"></i>
+                    <p class="text-xs font-semibold">Kesalahan koneksi saat memuat voucher: ${e.message}</p>
+                </div>`;
+                if (window.lucide) lucide.createIcons();
+            }
+        }
+    },
+
+    updateAdminVoucherStatsAndList(data) {
+        var vouchers = Profile.adminVouchersData || [];
+        var stats = data?.stats || {
+            total: vouchers.length,
+            active: vouchers.filter(function(v){ return v.isActive; }).length,
+            totalRedeemed: vouchers.reduce(function(acc, v){ return acc + (v.usedCount || 0); }, 0)
+        };
+        var statTotal = gid('admin-vch-stat-total');
+        if (statTotal) statTotal.innerText = stats.total || vouchers.length;
+        var statActive = gid('admin-vch-stat-active');
+        if (statActive) statActive.innerText = stats.active || 0;
+        var statRedeemed = gid('admin-vch-stat-redeemed');
+        if (statRedeemed) statRedeemed.innerText = (stats.totalRedeemed || 0) + 'x';
+
+        var listCount = gid('admin-vch-list-count');
+        if (listCount) listCount.innerText = `(${vouchers.length})`;
+
+        var listContainer = gid('admin-vouchers-list-container');
+        if (listContainer) {
+            listContainer.innerHTML = Profile.renderVoucherListCards(vouchers);
+            if (window.lucide) lucide.createIcons();
+        }
+    },
+
+    renderAdminVouchersTab(data) {
+        var container = gid('admin-vouchers-container');
+        if (!container) return;
+
+        var vouchers = Profile.adminVouchersData || [];
+        var stats = data?.stats || {
+            total: vouchers.length,
+            active: vouchers.filter(function(v){ return v.isActive; }).length,
+            totalRedeemed: vouchers.reduce(function(acc, v){ return acc + (v.usedCount || 0); }, 0)
+        };
+
+        var isTrialMode = Profile.adminVchFormType === 'trial';
+
+        var html = `
+        <div class="space-y-5">
+            <!-- Header Card & Quick Stats -->
+            <div class="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-amber-500/10 via-yellow-500/10 to-amber-600/5 border border-amber-400/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xl">
+                <div>
+                    <h3 class="text-sm sm:text-base font-extrabold text-white flex items-center gap-2">
+                        <div class="w-7 h-7 rounded-lg bg-amber-400/20 text-amber-300 flex items-center justify-center">
+                            <i data-lucide="ticket" class="w-4 h-4 text-amber-400"></i>
+                        </div>
+                        <span>Kelola & Buat Kode Voucher VIP</span>
+                    </h3>
+                    <p class="text-xs text-white/60 mt-1 max-w-xl">
+                        Buat kode voucher promo untuk pengguna. Pengguna dapat langsung menukarkan kode ini di modal VIP untuk mengaktifkan status VIP & border profil seketika!
+                    </p>
+                </div>
+
+                <div class="flex items-center gap-2 shrink-0 flex-wrap">
+                    <div class="px-3 py-1.5 rounded-xl bg-black/50 border border-white/10 text-center">
+                        <span class="text-[9.5px] uppercase tracking-wider text-white/40 block font-bold">Total Voucher</span>
+                        <span id="admin-vch-stat-total" class="text-sm font-black text-amber-300 font-mono">${stats.total || vouchers.length}</span>
+                    </div>
+                    <div class="px-3 py-1.5 rounded-xl bg-black/50 border border-white/10 text-center">
+                        <span class="text-[9.5px] uppercase tracking-wider text-emerald-400/70 block font-bold">Aktif</span>
+                        <span id="admin-vch-stat-active" class="text-sm font-black text-emerald-400 font-mono">${stats.active || 0}</span>
+                    </div>
+                    <div class="px-3 py-1.5 rounded-xl bg-black/50 border border-white/10 text-center">
+                        <span class="text-[9.5px] uppercase tracking-wider text-sky-400/70 block font-bold">Total Diklaim</span>
+                        <span id="admin-vch-stat-redeemed" class="text-sm font-black text-sky-300 font-mono">${stats.totalRedeemed || 0}x</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FORM BUAT KODE VOUCHER BARU -->
+            <div class="p-4 sm:p-5 rounded-2xl bg-white/[0.03] border border-white/10 space-y-4 shadow-lg">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-white/10 pb-3">
+                    <div class="flex items-center gap-2">
+                        <div class="w-6 h-6 rounded-lg bg-amber-400/20 text-amber-300 flex items-center justify-center">
+                            <i data-lucide="plus" class="w-3.5 h-3.5 text-amber-400"></i>
+                        </div>
+                        <h4 class="text-xs sm:text-sm font-bold text-white">Terbitkan Kode Voucher Baru</h4>
+                    </div>
+                    <span class="text-[10px] text-amber-300 bg-amber-400/10 border border-amber-400/20 px-2 py-0.5 rounded-full font-bold w-fit">
+                        Akses Instan &bull; Otomatis
+                    </span>
+                </div>
+
+                <form id="admin-create-voucher-form" onsubmit="Profile.submitCreateVoucher(event)" class="space-y-4">
+                    
+                    <!-- 1. KODE VOUCHER -->
+                    <div class="space-y-1.5">
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs font-bold text-white/90 flex items-center gap-1.5">
+                                <span class="w-4 h-4 rounded-full bg-amber-400/20 text-amber-300 text-[10px] font-black flex items-center justify-center">1</span>
+                                <span>Kode Voucher:</span>
+                            </label>
+                            <button type="button" onclick="Profile.generateRandomVoucherCode()" class="text-[10px] text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1 cursor-pointer">
+                                <i data-lucide="sparkles" class="w-3 h-3"></i> Acak Kode
+                            </button>
+                        </div>
+                        <input type="text" id="admin-vch-code-input" placeholder="Misal: VIP1BULAN, SULTANVIP, COBATRIAL" class="w-full text-xs sm:text-sm py-2.5 px-3.5 bg-black/60 border border-white/20 focus:border-amber-400 rounded-xl text-white font-mono font-black uppercase tracking-wider placeholder:text-white/30 focus:outline-none transition-colors" required />
+                    </div>
+
+                    <!-- 2. PILIHAN KATEGORI & DURASI VOUCHER (DUA KARTU TERPISAH: VIP & TRIAL SENDIRI-SENDIRI) -->
+                    <div class="space-y-3 pt-1">
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs font-bold text-white/90 flex items-center gap-1.5">
+                                <span class="w-4 h-4 rounded-full bg-amber-400 text-black text-[10px] font-black flex items-center justify-center">2</span>
+                                <span>Tipe Paket & Durasi (Bisa Pilihan & Ketikan):</span>
+                            </label>
+                            <span class="text-[10px] text-amber-300/80 font-semibold">Bagian Trial & VIP Terpisah Mandiri</span>
+                        </div>
+
+                        <!-- KARTU A: PAKET VIP REGULER -->
+                        <div id="box-vch-duration-vip" 
+                             onclick="if(Profile.adminVchFormType!=='vip') Profile.setVoucherFormType('vip')"
+                             class="p-3.5 sm:p-4 rounded-2xl transition-all space-y-3 cursor-pointer ${!isTrialMode ? 'bg-amber-500/[0.08] border-2 border-amber-400 shadow-[0_0_25px_rgba(245,158,11,0.25)]' : 'bg-white/[0.02] border border-white/10 opacity-75 hover:opacity-100 hover:border-white/20'}">
+                            
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <input type="radio" 
+                                           id="radio-vch-type-vip" 
+                                           name="admin_vch_category_radio" 
+                                           ${!isTrialMode ? 'checked' : ''} 
+                                           onchange="Profile.setVoucherFormType('vip')" 
+                                           class="w-4 h-4 accent-amber-400 cursor-pointer" />
+                                    <label for="radio-vch-type-vip" class="text-xs sm:text-sm font-extrabold text-white flex items-center gap-1.5 cursor-pointer">
+                                        <i data-lucide="crown" class="w-4 h-4 text-amber-400"></i>
+                                        <span>Paket VIP Reguler</span>
+                                    </label>
+                                </div>
+                                <span class="vch-badge-status text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ${!isTrialMode ? 'bg-amber-400 text-black' : 'bg-white/10 text-white/50'}">
+                                    ${!isTrialMode ? '👑 AKTIF DIPILIH' : 'Klik untuk Pilih'}
+                                </span>
+                            </div>
+
+                            <p class="text-[11px] text-white/60">
+                                Voucher untuk langganan VIP resmi (1, 2, 5 bulan atau Permanen).
+                            </p>
+
+                            <!-- Pilihan Dropdown Sesuai Foto Kedua -->
+                            <div class="space-y-1.5" onclick="event.stopPropagation();">
+                                <label class="text-[11px] font-bold text-amber-300/90 block">Pilihan Paket & Durasi (Dropdown):</label>
+                                <select id="admin-vch-tier-select" 
+                                        onchange="Profile.onVchVipSelectChange(this.value)" 
+                                        class="w-full text-xs sm:text-sm py-2.5 px-3.5 bg-black/80 border border-white/20 focus:border-amber-400 rounded-xl text-white font-medium focus:outline-none transition-colors cursor-pointer">
+                                    <option value="1month" ${Profile.adminVchVipPreset === '1month' ? 'selected' : ''}>VIP 1 Bulan (30 Hari) • Platinum & Master</option>
+                                    <option value="2months" ${Profile.adminVchVipPreset === '2months' ? 'selected' : ''}>VIP 2 Bulan (60 Hari) • Platinum, Master & Legend</option>
+                                    <option value="5months" ${Profile.adminVchVipPreset === '5months' ? 'selected' : ''}>VIP 5 Bulan (150 Hari) • Semua Border Tier</option>
+                                    <option value="permanent" ${Profile.adminVchVipPreset === 'permanent' ? 'selected' : ''}>VIP Permanen (Selamanya) • Bebas Semua Border</option>
+                                    <option value="custom" ${Profile.adminVchVipPreset === 'custom' ? 'selected' : ''}>Ketik Durasi Hari Sendiri</option>
+                                </select>
+                            </div>
+
+                            <!-- Kolom Ketikan Hari Durasi VIP Langsung -->
+                            <div class="space-y-1 pt-1" onclick="event.stopPropagation();">
+                                <label class="text-[10.5px] font-bold text-white/70 block">Ketik Durasi Hari Langsung (Bisa Ketikan):</label>
+                                <div class="flex items-center gap-2">
+                                    <div class="relative flex-1">
+                                        <input type="number" 
+                                               id="admin-vch-vip-days-input" 
+                                               value="${Profile.adminVchVipDays}" 
+                                               min="0" 
+                                               onfocus="Profile.setVoucherFormType('vip')"
+                                               oninput="Profile.setVoucherFormType('vip'); Profile.onVchVipDaysInput(this.value)" 
+                                               placeholder="Ketik jumlah hari (misal: 30, 90, 365, atau 0 = Permanen)" 
+                                               class="w-full text-xs py-2 px-3.5 bg-black/70 border border-white/20 focus:border-amber-400 rounded-xl text-white font-mono font-bold focus:outline-none transition-colors" />
+                                    </div>
+                                    <span class="text-xs text-amber-300 font-bold shrink-0">Hari (0 = Permanen)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- KARTU B: TRIAL VIP (UJI COBA) — DIBIKIN TERPISAH SENDIRI! -->
+                        <div id="box-vch-duration-trial" 
+                             onclick="if(Profile.adminVchFormType!=='trial') Profile.setVoucherFormType('trial')"
+                             class="p-3.5 sm:p-4 rounded-2xl transition-all space-y-3 cursor-pointer ${isTrialMode ? 'bg-sky-500/[0.08] border-2 border-sky-400 shadow-[0_0_25px_rgba(56,189,248,0.25)]' : 'bg-white/[0.02] border border-white/10 opacity-75 hover:opacity-100 hover:border-white/20'}">
+                            
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <input type="radio" 
+                                           id="radio-vch-type-trial" 
+                                           name="admin_vch_category_radio" 
+                                           ${isTrialMode ? 'checked' : ''} 
+                                           onchange="Profile.setVoucherFormType('trial')" 
+                                           class="w-4 h-4 accent-sky-400 cursor-pointer" />
+                                    <label for="radio-vch-type-trial" class="text-xs sm:text-sm font-extrabold text-white flex items-center gap-1.5 cursor-pointer">
+                                        <i data-lucide="sparkles" class="w-4 h-4 text-sky-400"></i>
+                                        <span>Trial VIP (Uji Coba) — Terpisah Sendiri</span>
+                                    </label>
+                                </div>
+                                <span class="vch-badge-status text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ${isTrialMode ? 'bg-sky-400 text-black' : 'bg-white/10 text-white/50'}">
+                                    ${isTrialMode ? '✨ AKTIF DIPILIH' : 'Klik untuk Pilih'}
+                                </span>
+                            </div>
+
+                            <p class="text-[11px] text-white/60">
+                                Voucher uji coba khusus member baru. Bebas atur durasi hari trial sesuai kebutuhan!
+                            </p>
+
+                            <!-- Pilihan Dropdown Trial -->
+                            <div class="space-y-1.5" onclick="event.stopPropagation();">
+                                <label class="text-[11px] font-bold text-sky-300/90 block">Pilihan Paket Trial (Dropdown):</label>
+                                <select id="admin-vch-trial-select" 
+                                        onchange="Profile.onVchTrialSelectChange(this.value)" 
+                                        class="w-full text-xs sm:text-sm py-2.5 px-3.5 bg-black/80 border border-white/20 focus:border-sky-400 rounded-xl text-white font-medium focus:outline-none transition-colors cursor-pointer">
+                                    <option value="1d" ${Profile.adminVchTrialPreset === '1d' ? 'selected' : ''}>Trial 1 Hari • Platinum</option>
+                                    <option value="3d" ${Profile.adminVchTrialPreset === '3d' ? 'selected' : ''}>Trial 3 Hari • Platinum</option>
+                                    <option value="7d" ${Profile.adminVchTrialPreset === '7d' ? 'selected' : ''}>Trial 7 Hari (1 Minggu) • Platinum</option>
+                                    <option value="14d" ${Profile.adminVchTrialPreset === '14d' ? 'selected' : ''}>Trial 14 Hari (2 Minggu) • Platinum</option>
+                                    <option value="30d" ${Profile.adminVchTrialPreset === '30d' ? 'selected' : ''}>Trial 30 Hari (1 Bulan) • Platinum</option>
+                                    <option value="custom" ${Profile.adminVchTrialPreset === 'custom' ? 'selected' : ''}>Ketik Durasi Hari Trial Sendiri</option>
+                                </select>
+                            </div>
+
+                            <!-- Kolom Ketikan Hari Durasi Trial Langsung -->
+                            <div class="space-y-1 pt-1" onclick="event.stopPropagation();">
+                                <label class="text-[10.5px] font-bold text-white/70 block">Ketik Durasi Hari Trial Langsung (Bisa Ketikan):</label>
+                                <div class="flex items-center gap-2">
+                                    <div class="relative flex-1">
+                                        <input type="number" 
+                                               id="admin-vch-trial-days-input" 
+                                               value="${Profile.adminVchTrialDays}" 
+                                               min="1" 
+                                               onfocus="Profile.setVoucherFormType('trial')"
+                                               oninput="Profile.setVoucherFormType('trial'); Profile.onVchTrialDaysInput(this.value)" 
+                                               placeholder="Ketik jumlah hari trial (misal: 1, 3, 5, 7, 10, 14 hari)" 
+                                               class="w-full text-xs py-2 px-3.5 bg-black/70 border border-white/20 focus:border-sky-400 rounded-xl text-white font-mono font-bold focus:outline-none transition-colors" />
+                                    </div>
+                                    <span class="text-xs text-sky-300 font-bold shrink-0">Hari Trial</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. KUOTA PEMAKAIAN (BISA PILIHAN & BISA KETIKAN) -->
+                    <div class="p-3.5 rounded-2xl bg-white/[0.02] border border-white/10 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs font-bold text-white/90 flex items-center gap-1.5">
+                                <span class="w-4 h-4 rounded-full bg-emerald-400/20 text-emerald-300 text-[10px] font-black flex items-center justify-center">3</span>
+                                <span>Kuota Pemakaian (Bisa Pilihan & Ketikan):</span>
+                            </label>
+                            <span class="text-[10px] text-emerald-300/80 font-semibold">Bisa dropdown & bisa ketik kuota</span>
+                        </div>
+
+                        <!-- Pilihan Dropdown Kuota -->
+                        <div class="space-y-1">
+                            <label class="text-[11px] font-bold text-emerald-300/90 block">Pilihan Kuota Pemakaian (Dropdown):</label>
+                            <select id="admin-vch-quota-select" 
+                                    onchange="Profile.onVchQuotaSelectChange(this.value)" 
+                                    class="w-full text-xs sm:text-sm py-2.5 px-3.5 bg-black/80 border border-white/20 focus:border-emerald-400 rounded-xl text-white font-medium focus:outline-none transition-colors cursor-pointer">
+                                <option value="1" ${Profile.adminVchQuotaPreset === '1' ? 'selected' : ''}>1x Pemakaian (Khusus 1 Pengguna)</option>
+                                <option value="5" ${Profile.adminVchQuotaPreset === '5' ? 'selected' : ''}>5x Pemakaian</option>
+                                <option value="10" ${Profile.adminVchQuotaPreset === '10' ? 'selected' : ''}>10x Pemakaian</option>
+                                <option value="50" ${Profile.adminVchQuotaPreset === '50' ? 'selected' : ''}>50x Pemakaian (Promo)</option>
+                                <option value="100" ${Profile.adminVchQuotaPreset === '100' ? 'selected' : ''}>100x Pemakaian (Komunitas)</option>
+                                <option value="-1" ${Profile.adminVchQuotaPreset === 'unlimited' ? 'selected' : ''}>Unlimited / Tanpa Batas</option>
+                                <option value="custom" ${Profile.adminVchQuotaPreset === 'custom' ? 'selected' : ''}>Ketik Jumlah Kuota Sendiri</option>
+                            </select>
+                        </div>
+
+                        <!-- Kolom Ketikan Kuota Langsung -->
+                        <div class="space-y-1 pt-1">
+                            <label class="text-[10.5px] font-bold text-white/70 block">Ketik Jumlah Kuota Klaim Langsung (Bisa Ketikan):</label>
+                            <div class="flex items-center gap-2">
+                                <div class="relative flex-1">
+                                    <input type="number" 
+                                           id="admin-vch-quota-input" 
+                                           value="${Profile.adminVchQuotaVal}" 
+                                           min="-1" 
+                                           oninput="Profile.onVchQuotaInput(this.value)" 
+                                           placeholder="Ketik angka kuota (misal: 1, 25, 200, atau -1 untuk Unlimited)" 
+                                           class="w-full text-xs py-2 px-3.5 bg-black/70 border border-white/20 focus:border-emerald-400 rounded-xl text-white font-mono font-bold focus:outline-none transition-colors" />
+                                </div>
+                                <span class="text-xs text-emerald-300 font-bold shrink-0">Kali (-1 = Unlimited)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. BATAS WAKTU KLAIM (BISA PILIHAN & BISA KETIKAN / KALENDER) -->
+                    <div class="p-3.5 rounded-2xl bg-white/[0.02] border border-white/10 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <label class="text-xs font-bold text-white/90 flex items-center gap-1.5">
+                                <span class="w-4 h-4 rounded-full bg-amber-400/20 text-amber-300 text-[10px] font-black flex items-center justify-center">4</span>
+                                <span>Batas Waktu Klaim (Bisa Pilihan & Ketikan):</span>
+                            </label>
+                            <span class="text-[10px] text-amber-300/80 font-semibold">Bisa dropdown, ketik hari, atau pilih tanggal</span>
+                        </div>
+
+                        <!-- Pilihan Dropdown Batas Waktu Expiry -->
+                        <div class="space-y-1">
+                            <label class="text-[11px] font-bold text-amber-300/90 block">Pilihan Batas Waktu Expiry (Dropdown):</label>
+                            <select id="admin-vch-expiry-select" 
+                                    onchange="Profile.onVchExpirySelectChange(this.value)" 
+                                    class="w-full text-xs sm:text-sm py-2.5 px-3.5 bg-black/80 border border-white/20 focus:border-amber-400 rounded-xl text-white font-medium focus:outline-none transition-colors cursor-pointer">
+                                <option value="none" ${Profile.adminVchExpiryPreset === 'none' ? 'selected' : ''}>♾️ Tanpa Batas Waktu Expiry</option>
+                                <option value="1d" ${Profile.adminVchExpiryPreset === '1d' ? 'selected' : ''}>1 Hari</option>
+                                <option value="3d" ${Profile.adminVchExpiryPreset === '3d' ? 'selected' : ''}>3 Hari</option>
+                                <option value="7d" ${Profile.adminVchExpiryPreset === '7d' ? 'selected' : ''}>7 Hari (1 Minggu)</option>
+                                <option value="14d" ${Profile.adminVchExpiryPreset === '14d' ? 'selected' : ''}>14 Hari</option>
+                                <option value="30d" ${Profile.adminVchExpiryPreset === '30d' ? 'selected' : ''}>30 Hari (1 Bulan)</option>
+                                <option value="custom" ${Profile.adminVchExpiryPreset === 'custom' ? 'selected' : ''}>📅 Ketik Hari / Pilih Tanggal Sendiri</option>
+                            </select>
+                        </div>
+
+                        <!-- Kolom Ketikan Hari Berlaku & Kalender Datetime-Local -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                            <div class="space-y-1">
+                                <label class="text-[10.5px] font-bold text-white/70 block">Ketik Jumlah Hari Berlaku (Bisa Ketikan):</label>
+                                <div class="flex items-center gap-2">
+                                    <input type="number" 
+                                           id="admin-vch-expiry-days-input" 
+                                           value="" 
+                                           min="0" 
+                                           oninput="Profile.onVchExpiryDaysInput(this.value)" 
+                                           placeholder="Ketik hari (misal: 7, 30, atau 0 = Tanpa Batas)" 
+                                           class="w-full text-xs py-2 px-3.5 bg-black/70 border border-white/20 focus:border-amber-400 rounded-xl text-white font-mono font-bold focus:outline-none transition-colors" />
+                                    <span class="text-xs text-amber-300 font-bold shrink-0">Hari</span>
+                                </div>
+                            </div>
+                            <div class="space-y-1">
+                                <label class="text-[10.5px] font-bold text-white/70 block">Atau Pilih Tanggal & Jam Kalender:</label>
+                                <input type="datetime-local" 
+                                       id="admin-vch-expiry-input" 
+                                       value="${Profile.adminVchExpiryVal || ''}" 
+                                       onchange="Profile.onVchExpiryDateChange(this.value)" 
+                                       class="w-full text-xs py-2 px-3.5 bg-black/70 border border-white/20 focus:border-amber-400 rounded-xl text-white font-mono focus:outline-none transition-colors" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5. NAMA / LABEL VOUCHER -->
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-bold text-white/90 flex items-center gap-1.5">
+                            <span class="w-4 h-4 rounded-full bg-white/10 text-white/70 text-[10px] font-black flex items-center justify-center">5</span>
+                            <span>Nama / Deskripsi Singkat (Opsional):</span>
+                        </label>
+                        <input type="text" 
+                               id="admin-vch-name-input" 
+                               value="${isTrialMode ? `Voucher Trial VIP (${Profile.adminVchTrialDays || 7} Hari)` : (Profile.adminVchVipDays === 0 ? 'Voucher VIP Sultan Permanen' : `Voucher VIP (${Profile.adminVchVipDays || 30} Hari)`)}" 
+                               placeholder="Contoh: Voucher VIP Spesial Member Baru" 
+                               class="w-full text-xs py-2.5 px-3.5 bg-black/60 border border-white/20 focus:border-amber-400 rounded-xl text-white placeholder:text-white/30 focus:outline-none transition-colors" />
+                    </div>
+
+                    <!-- TOMBOL SUBMIT -->
+                    <div class="pt-2 flex items-center justify-end">
+                        <button type="submit" id="admin-create-vch-btn" class="w-full sm:w-auto px-7 py-3 rounded-2xl bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-500 hover:to-yellow-500 text-black text-xs sm:text-sm font-black flex items-center justify-center gap-2 active:scale-95 transition-all cursor-pointer shadow-xl shadow-amber-500/25">
+                            <i data-lucide="ticket" class="w-4 h-4 fill-black"></i>
+                            <span>Terbitkan Kode Voucher Sekarang</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- DAFTAR KODE VOUCHER TERDAFTAR -->
+            <div class="space-y-3 pt-2">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <h4 class="text-xs sm:text-sm font-extrabold text-white flex items-center gap-2">
+                            <span>Daftar Kode Voucher Terdaftar</span>
+                            <span id="admin-vch-list-count" class="text-xs font-bold text-white/50 font-mono">(${vouchers.length})</span>
+                        </h4>
+                        <p class="text-[11px] text-white/50">Pantau kode voucher yang masih aktif, kuota tersisa, dan daftar pengguna yang sudah mengklaim.</p>
+                    </div>
+
+                    <!-- Search Input -->
+                    <div class="relative w-full sm:w-60">
+                        <i data-lucide="search" class="w-3.5 h-3.5 text-white/40 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                        <input type="text" id="admin-vch-search-input" oninput="Profile.onAdminVoucherSearch(this.value)" placeholder="Cari kode voucher..." class="w-full bg-white/5 border border-white/10 focus:border-amber-400 rounded-xl pl-8 pr-8 py-2 text-xs text-white placeholder-white/40 focus:outline-none transition-all" />
+                        <button onclick="var el=gid('admin-vch-search-input'); if(el) el.value=''; Profile.onAdminVoucherSearch('');" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors cursor-pointer" title="Hapus">
+                            <i data-lucide="x-circle" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Container Kartu Voucher -->
+                <div id="admin-vouchers-list-container" class="space-y-3">
+                    ${Profile.renderVoucherListCards(vouchers)}
+                </div>
+            </div>
+        </div>
+        `;
+
+        container.innerHTML = html;
+        if (window.lucide) lucide.createIcons();
+    },
+
+    setVoucherFormType(type) {
+        Profile.adminVchFormType = type;
+        var boxVip = gid('box-vch-duration-vip');
+        var boxTrial = gid('box-vch-duration-trial');
+        var nameInput = gid('admin-vch-name-input');
+        var rVip = gid('radio-vch-type-vip');
+        var rTrial = gid('radio-vch-type-trial');
+
+        if (type === 'trial') {
+            if (rTrial) rTrial.checked = true;
+            if (rVip) rVip.checked = false;
+            if (boxTrial) {
+                boxTrial.className = 'p-3.5 sm:p-4 rounded-2xl transition-all space-y-3 cursor-pointer bg-sky-500/[0.08] border-2 border-sky-400 shadow-[0_0_25px_rgba(56,189,248,0.25)]';
+                var badgeTrial = boxTrial.querySelector('.vch-badge-status');
+                if (badgeTrial) {
+                    badgeTrial.className = 'vch-badge-status text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-sky-400 text-black';
+                    badgeTrial.innerText = '✨ AKTIF DIPILIH';
+                }
+            }
+            if (boxVip) {
+                boxVip.className = 'p-3.5 sm:p-4 rounded-2xl transition-all space-y-3 cursor-pointer bg-white/[0.02] border border-white/10 opacity-75 hover:opacity-100 hover:border-white/20';
+                var badgeVip = boxVip.querySelector('.vch-badge-status');
+                if (badgeVip) {
+                    badgeVip.className = 'vch-badge-status text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-white/10 text-white/50';
+                    badgeVip.innerText = 'Klik untuk Pilih';
+                }
+            }
+            if (nameInput && (!nameInput.value || nameInput.value.startsWith('Voucher VIP') || nameInput.value.startsWith('Voucher Trial'))) {
+                nameInput.value = `Voucher Trial VIP (${Profile.adminVchTrialDays || 7} Hari)`;
+            }
+        } else {
+            if (rVip) rVip.checked = true;
+            if (rTrial) rTrial.checked = false;
+            if (boxVip) {
+                boxVip.className = 'p-3.5 sm:p-4 rounded-2xl transition-all space-y-3 cursor-pointer bg-amber-500/[0.08] border-2 border-amber-400 shadow-[0_0_25px_rgba(245,158,11,0.25)]';
+                var badgeVip = boxVip.querySelector('.vch-badge-status');
+                if (badgeVip) {
+                    badgeVip.className = 'vch-badge-status text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-amber-400 text-black';
+                    badgeVip.innerText = '👑 AKTIF DIPILIH';
+                }
+            }
+            if (boxTrial) {
+                boxTrial.className = 'p-3.5 sm:p-4 rounded-2xl transition-all space-y-3 cursor-pointer bg-white/[0.02] border border-white/10 opacity-75 hover:opacity-100 hover:border-white/20';
+                var badgeTrial = boxTrial.querySelector('.vch-badge-status');
+                if (badgeTrial) {
+                    badgeTrial.className = 'vch-badge-status text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-white/10 text-white/50';
+                    badgeTrial.innerText = 'Klik untuk Pilih';
+                }
+            }
+            if (nameInput && (!nameInput.value || nameInput.value.startsWith('Voucher VIP') || nameInput.value.startsWith('Voucher Trial'))) {
+                nameInput.value = Profile.adminVchVipDays === 0 ? 'Voucher VIP Sultan Permanen' : `Voucher VIP (${Profile.adminVchVipDays || 30} Hari)`;
+            }
+        }
+        if (window.lucide) lucide.createIcons();
+    },
+
+    onVchVipSelectChange(val) {
+        if (val === '1month') {
+            Profile.selectVchVipPreset('1month', 30);
+        } else if (val === '2months') {
+            Profile.selectVchVipPreset('2months', 60);
+        } else if (val === '5months') {
+            Profile.selectVchVipPreset('5months', 150);
+        } else if (val === 'permanent') {
+            Profile.selectVchVipPreset('permanent', 0);
+        } else {
+            Profile.adminVchVipPreset = 'custom';
+        }
+    },
+
+    onVchTrialSelectChange(val) {
+        if (val === '1d') {
+            Profile.selectVchTrialPreset('1d', 1);
+        } else if (val === '3d') {
+            Profile.selectVchTrialPreset('3d', 3);
+        } else if (val === '7d') {
+            Profile.selectVchTrialPreset('7d', 7);
+        } else if (val === '14d') {
+            Profile.selectVchTrialPreset('14d', 14);
+        } else if (val === '30d') {
+            Profile.selectVchTrialPreset('30d', 30);
+        } else {
+            Profile.adminVchTrialPreset = 'custom';
+        }
+    },
+
+    onVchQuotaSelectChange(val) {
+        if (val === '1') {
+            Profile.selectVchQuotaPreset('1', 1);
+        } else if (val === '5') {
+            Profile.selectVchQuotaPreset('5', 5);
+        } else if (val === '10') {
+            Profile.selectVchQuotaPreset('10', 10);
+        } else if (val === '50') {
+            Profile.selectVchQuotaPreset('50', 50);
+        } else if (val === '100') {
+            Profile.selectVchQuotaPreset('100', 100);
+        } else if (val === '-1') {
+            Profile.selectVchQuotaPreset('unlimited', -1);
+        } else {
+            Profile.adminVchQuotaPreset = 'custom';
+        }
+    },
+
+    selectVchVipPreset(preset, days) {
+        Profile.adminVchVipPreset = preset;
+        Profile.adminVchVipDays = days;
+        var input = gid('admin-vch-vip-days-input');
+        if (input) input.value = days;
+        var selectEl = gid('admin-vch-tier-select');
+        if (selectEl) selectEl.value = preset;
+
+        var nameInput = gid('admin-vch-name-input');
+        if (nameInput && (!nameInput.value || nameInput.value.startsWith('Voucher VIP') || nameInput.value.startsWith('Voucher Trial'))) {
+            nameInput.value = days === 0 ? 'Voucher VIP Sultan Permanen' : `Voucher VIP (${days} Hari)`;
+        }
+    },
+
+    onVchVipDaysInput(val) {
+        var num = parseInt(val, 10);
+        Profile.adminVchVipDays = isNaN(num) ? 0 : num;
+        var matchPreset = 'custom';
+        if (num === 30) matchPreset = '1month';
+        else if (num === 60) matchPreset = '2months';
+        else if (num === 150) matchPreset = '5months';
+        else if (num === 0) matchPreset = 'permanent';
+        Profile.adminVchVipPreset = matchPreset;
+        var selectEl = gid('admin-vch-tier-select');
+        if (selectEl) selectEl.value = matchPreset;
+    },
+
+    selectVchTrialPreset(preset, days) {
+        Profile.adminVchTrialPreset = preset;
+        Profile.adminVchTrialDays = days;
+        var input = gid('admin-vch-trial-days-input');
+        if (input) input.value = days;
+        var selectEl = gid('admin-vch-trial-select');
+        if (selectEl) selectEl.value = preset;
+
+        var nameInput = gid('admin-vch-name-input');
+        if (nameInput && (!nameInput.value || nameInput.value.startsWith('Voucher VIP') || nameInput.value.startsWith('Voucher Trial'))) {
+            nameInput.value = `Voucher Trial VIP (${days} Hari)`;
+        }
+    },
+
+    onVchTrialDaysInput(val) {
+        var num = parseInt(val, 10);
+        Profile.adminVchTrialDays = isNaN(num) ? 1 : num;
+        var matchPreset = 'custom';
+        if (num === 1) matchPreset = '1d';
+        else if (num === 3) matchPreset = '3d';
+        else if (num === 7) matchPreset = '7d';
+        else if (num === 14) matchPreset = '14d';
+        else if (num === 30) matchPreset = '30d';
+        Profile.adminVchTrialPreset = matchPreset;
+        var selectEl = gid('admin-vch-trial-select');
+        if (selectEl) selectEl.value = matchPreset;
+    },
+
+    selectVchQuotaPreset(preset, val) {
+        Profile.adminVchQuotaPreset = preset;
+        Profile.adminVchQuotaVal = val;
+        var input = gid('admin-vch-quota-input');
+        if (input) input.value = val;
+        var selectEl = gid('admin-vch-quota-select');
+        if (selectEl) selectEl.value = preset === 'unlimited' ? '-1' : preset;
+    },
+
+    onVchQuotaInput(val) {
+        var num = parseInt(val, 10);
+        Profile.adminVchQuotaVal = isNaN(num) ? 1 : num;
+        var matchPreset = 'custom';
+        if (num === 1) matchPreset = '1';
+        else if (num === 5) matchPreset = '5';
+        else if (num === 10) matchPreset = '10';
+        else if (num === 50) matchPreset = '50';
+        else if (num === 100) matchPreset = '100';
+        else if (num === -1) matchPreset = '-1';
+        Profile.adminVchQuotaPreset = matchPreset === '-1' ? 'unlimited' : matchPreset;
+        var selectEl = gid('admin-vch-quota-select');
+        if (selectEl) selectEl.value = matchPreset;
+    },
+
+    onVchExpirySelectChange(val) {
+        if (val === 'none') {
+            Profile.selectVchExpiryPreset('none', 0);
+        } else if (val === '1d') {
+            Profile.selectVchExpiryPreset('1d', 1);
+        } else if (val === '3d') {
+            Profile.selectVchExpiryPreset('3d', 3);
+        } else if (val === '7d') {
+            Profile.selectVchExpiryPreset('7d', 7);
+        } else if (val === '14d') {
+            Profile.selectVchExpiryPreset('14d', 14);
+        } else if (val === '30d') {
+            Profile.selectVchExpiryPreset('30d', 30);
+        } else {
+            Profile.adminVchExpiryPreset = 'custom';
+        }
+    },
+
+    selectVchExpiryPreset(preset, days) {
+        Profile.adminVchExpiryPreset = preset;
+        var inputDt = gid('admin-vch-expiry-input');
+        var inputDays = gid('admin-vch-expiry-days-input');
+        var selectEl = gid('admin-vch-expiry-select');
+        if (selectEl) selectEl.value = preset;
+
+        if (preset === 'none' || days <= 0) {
+            if (inputDt) inputDt.value = '';
+            if (inputDays) inputDays.value = '0';
+            Profile.adminVchExpiryVal = '';
+        } else {
+            if (inputDays) inputDays.value = days;
+            var targetMs = Date.now() + (days * 24 * 60 * 60 * 1000);
+            var d = new Date(targetMs);
+            var pad = function(n) { return String(n).padStart(2, '0'); };
+            var localIso = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+            if (inputDt) inputDt.value = localIso;
+            Profile.adminVchExpiryVal = localIso;
+        }
+    },
+
+    onVchExpiryDaysInput(val) {
+        var num = parseInt(val, 10);
+        var inputDt = gid('admin-vch-expiry-input');
+        var selectEl = gid('admin-vch-expiry-select');
+        if (isNaN(num) || num <= 0) {
+            Profile.adminVchExpiryPreset = 'none';
+            Profile.adminVchExpiryVal = '';
+            if (inputDt) inputDt.value = '';
+            if (selectEl) selectEl.value = 'none';
+        } else {
+            var targetMs = Date.now() + (num * 24 * 60 * 60 * 1000);
+            var d = new Date(targetMs);
+            var pad = function(n) { return String(n).padStart(2, '0'); };
+            var localIso = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+            Profile.adminVchExpiryVal = localIso;
+            if (inputDt) inputDt.value = localIso;
+            var matchPreset = 'custom';
+            if (num === 1) matchPreset = '1d';
+            else if (num === 3) matchPreset = '3d';
+            else if (num === 7) matchPreset = '7d';
+            else if (num === 14) matchPreset = '14d';
+            else if (num === 30) matchPreset = '30d';
+            Profile.adminVchExpiryPreset = matchPreset;
+            if (selectEl) selectEl.value = matchPreset;
+        }
+    },
+
+    onVchExpiryDateChange(val) {
+        Profile.adminVchExpiryVal = val || '';
+        var inputDays = gid('admin-vch-expiry-days-input');
+        var selectEl = gid('admin-vch-expiry-select');
+        if (val) {
+            var diffMs = new Date(val).getTime() - Date.now();
+            var diffDays = Math.max(1, Math.round(diffMs / (24 * 60 * 60 * 1000)));
+            if (inputDays) inputDays.value = diffDays;
+            Profile.adminVchExpiryPreset = 'custom';
+            if (selectEl) selectEl.value = 'custom';
+        } else {
+            if (inputDays) inputDays.value = '0';
+            Profile.adminVchExpiryPreset = 'none';
+            if (selectEl) selectEl.value = 'none';
+        }
+    },
+
+    renderVoucherListCards(vouchers) {
+        if (!vouchers || vouchers.length === 0) {
+            return `
+            <div class="p-8 text-center rounded-2xl bg-white/[0.03] border border-white/10 text-white/50 text-xs space-y-2">
+                <i data-lucide="ticket" class="w-8 h-8 mx-auto text-white/30"></i>
+                <p class="font-bold text-white/80">Belum Ada Kode Voucher yang Dibuat</p>
+                <p class="text-[11px] text-white/40">Gunakan formulir di atas untuk membuat kode voucher VIP pertama Anda.</p>
+            </div>`;
+        }
+
+        var q = String(Profile.adminVoucherSearchQuery || '').toLowerCase().trim();
+        var filtered = vouchers.filter(function(v) {
+            if (q) {
+                var c = String(v.code || '').toLowerCase();
+                var n = String(v.name || '').toLowerCase();
+                if (!c.includes(q) && !n.includes(q)) return false;
+            }
+            return true;
+        });
+
+        if (filtered.length === 0) {
+            return `
+            <div class="p-8 text-center rounded-2xl bg-white/[0.03] border border-white/10 text-white/50 text-xs">
+                Tidak ada kode voucher yang cocok dengan pencarian "${Profile.escapeHtml(q)}".
+            </div>`;
+        }
+
+        return filtered.map(function(v) {
+            var isExpired = v.expiresAt && Date.now() > v.expiresAt;
+            var isDepleted = v.maxUses > 0 && (v.usedCount || 0) >= v.maxUses;
+            var isUsable = v.isActive && !isExpired && !isDepleted;
+
+            var statusBadge = '';
+            if (!v.isActive) {
+                statusBadge = '<span class="text-[9.5px] px-2 py-0.5 rounded-full bg-white/10 text-white/50 border border-white/10 font-bold font-mono">NONAKTIF</span>';
+            } else if (isExpired) {
+                statusBadge = '<span class="text-[9.5px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 font-bold font-mono">KEDALUWARSA</span>';
+            } else if (isDepleted) {
+                statusBadge = '<span class="text-[9.5px] px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-300 border border-orange-500/30 font-bold font-mono">KUOTA HABIS</span>';
+            } else {
+                statusBadge = '<span class="text-[9.5px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold font-mono flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> AKTIF</span>';
+            }
+
+            var tierBadge = '';
+            if (v.isTrial || String(v.tier).toLowerCase() === 'trial') {
+                tierBadge = `<span class="text-[9.5px] px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30 font-bold">✨ Trial (${v.durationDays || 7} Hari)</span>`;
+            } else {
+                var t = String(v.tier || '1month').toLowerCase();
+                if (t === '1month' && (v.durationDays === 30 || !v.durationDays)) tierBadge = '<span class="text-[9.5px] px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30 font-bold">VIP 1 Bulan (30 Hari)</span>';
+                else if (t === '2months' || v.durationDays === 60) tierBadge = '<span class="text-[9.5px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 font-bold">VIP 2 Bulan (60 Hari)</span>';
+                else if (t === '5months' || v.durationDays === 150) tierBadge = '<span class="text-[9.5px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold">VIP 5 Bulan (150 Hari)</span>';
+                else if (t === 'permanent' || v.durationDays === 0) tierBadge = '<span class="text-[9.5px] px-2 py-0.5 rounded-full bg-gradient-to-r from-amber-400 to-yellow-500 text-black font-black">👑 VIP Permanen</span>';
+                else tierBadge = `<span class="text-[9.5px] px-2 py-0.5 rounded-full bg-amber-400/20 text-amber-300 border border-amber-400/30 font-bold">VIP ${v.durationDays || 30} Hari</span>`;
+            }
+
+            var kuotaText = v.maxUses <= 0 ? 'Tak Terbatas' : `${v.usedCount || 0}/${v.maxUses} Terpakai`;
+            var redeemedList = Array.isArray(v.redeemedBy) ? v.redeemedBy : [];
+
+            return `
+            <div class="p-4 rounded-2xl bg-white/[0.03] border border-white/10 hover:border-white/20 transition-all space-y-3 shadow-md">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <div class="w-10 h-10 rounded-xl ${isUsable ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30' : 'bg-white/5 text-white/40 border border-white/10'} flex items-center justify-center shrink-0">
+                            <i data-lucide="ticket" class="w-5 h-5"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <span class="font-mono font-black text-sm text-amber-300 tracking-wider bg-black/50 px-2.5 py-0.5 rounded-lg border border-amber-400/30 select-all">${Profile.escapeHtml(v.code)}</span>
+                                ${statusBadge}
+                                ${tierBadge}
+                            </div>
+                            <h5 class="text-xs font-bold text-white/80 mt-1 truncate">${Profile.escapeHtml(v.name || 'Voucher VIP')}</h5>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex items-center gap-2 shrink-0 flex-wrap pt-2 sm:pt-0 border-t sm:border-t-0 border-white/5">
+                        <button type="button" onclick="Profile.copyVoucherCode('${Profile.escapeJs(v.code)}')" class="px-2.5 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-white text-xs font-bold flex items-center gap-1 active:scale-95 transition-all cursor-pointer" title="Salin Kode Voucher">
+                            <i data-lucide="copy" class="w-3.5 h-3.5 text-amber-400"></i>
+                            <span>Salin</span>
+                        </button>
+                        <button type="button" onclick="Profile.toggleVoucherStatus('${Profile.escapeJs(v.id)}')" class="px-2.5 py-1.5 rounded-xl ${v.isActive ? 'bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-400/30' : 'bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30'} text-xs font-bold active:scale-95 transition-all cursor-pointer">
+                            <span>${v.isActive ? 'Nonaktifkan' : 'Aktifkan'}</span>
+                        </button>
+                        <button type="button" onclick="Profile.deleteVoucher('${Profile.escapeJs(v.id)}', '${Profile.escapeJs(v.code)}')" class="px-2.5 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-300 border border-rose-500/30 text-xs font-bold active:scale-95 transition-all cursor-pointer" title="Hapus Voucher">
+                            <i data-lucide="trash-2" class="w-3.5 h-3.5 text-rose-400"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Detail Metadata Card -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-white/5 text-[11px]">
+                    <div>
+                        <span class="text-white/40 block text-[10px]">Kuota Penggunaan:</span>
+                        <span class="font-bold text-white/90 font-mono">${kuotaText}</span>
+                    </div>
+                    <div>
+                        <span class="text-white/40 block text-[10px]">Bonus Border:</span>
+                        <span class="font-bold text-amber-300">${Profile.escapeHtml(v.borderName || 'Sesuai Tier')}</span>
+                    </div>
+                    <div>
+                        <span class="text-white/40 block text-[10px]">Tanggal Dibuat:</span>
+                        <span class="text-white/70">${v.createdAt ? new Date(v.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-'}</span>
+                    </div>
+                    <div>
+                        <span class="text-white/40 block text-[10px]">Masa Kedaluwarsa:</span>
+                        <span class="text-white/70">${v.expiresAt ? new Date(v.expiresAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : 'Tanpa Batas'}</span>
+                    </div>
+                </div>
+
+                <!-- Riwayat Pengguna yang Mengklaim (Collapsible) -->
+                ${redeemedList.length > 0 ? `
+                <div class="pt-2 border-t border-white/5">
+                    <button type="button" onclick="Profile.toggleVoucherRedeemedList('${Profile.escapeJs(v.id)}')" class="text-[11px] text-amber-400 hover:text-amber-300 font-bold flex items-center gap-1 cursor-pointer">
+                        <i data-lucide="users" class="w-3 h-3"></i>
+                        <span>Lihat ${redeemedList.length} Pengguna yang Mengklaim</span>
+                        <i id="vch-chev-${Profile.escapeAttr(v.id)}" data-lucide="chevron-down" class="w-3 h-3 transition-transform"></i>
+                    </button>
+                    <div id="vch-users-${Profile.escapeAttr(v.id)}" class="hidden mt-2 p-2.5 rounded-xl bg-black/40 border border-white/5 space-y-1.5">
+                        ${redeemedList.map(function(r, idx) {
+                            var dateStr = r.redeemedAt ? new Date(r.redeemedAt).toLocaleString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-';
+                            return `
+                            <div class="flex items-center justify-between text-[10.5px] p-1.5 rounded-lg bg-white/[0.02] border border-white/5">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="font-mono text-amber-400 font-bold">#${idx+1}</span>
+                                    <span class="font-bold text-white">@${Profile.escapeHtml(r.username || 'user')}</span>
+                                    ${r.email ? `<span class="text-white/40">(${Profile.escapeHtml(r.email)})</span>` : ''}
+                                </div>
+                                <span class="text-white/40 font-mono text-[10px]">${dateStr}</span>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                </div>
+                ` : ''}
+            </div>
+            `;
+        }).join('');
+    },
+
+    onAdminVoucherSearch(query) {
+        Profile.adminVoucherSearchQuery = String(query || '').trim();
+        var container = gid('admin-vouchers-list-container');
+        if (container) {
+            container.innerHTML = Profile.renderVoucherListCards(Profile.adminVouchersData || []);
+            if (window.lucide) lucide.createIcons();
+        }
+    },
+
+    generateRandomVoucherCode() {
+        var prefixes = ['VIP', 'STAR', 'MUSIFY', 'SULTAN', 'MERDEKA', 'PROMO'];
+        var prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+        var num = Math.floor(1000 + Math.random() * 9000);
+        var input = gid('admin-vch-code-input');
+        if (input) {
+            input.value = prefix + num;
+            input.focus();
+        }
+    },
+
+    async submitCreateVoucher(event) {
+        if (event && event.preventDefault) event.preventDefault();
+
+        var token = Profile.getAdminToken();
+        if (!token) return;
+
+        var codeInput = gid('admin-vch-code-input');
+        var code = (codeInput?.value || '').trim().toUpperCase();
+        if (!code) {
+            if (typeof showToast === 'function') showToast('Kode voucher tidak boleh kosong!');
+            return;
+        }
+
+        var isTrial = Profile.adminVchFormType === 'trial';
+        var durationDays;
+        var tier;
+        if (isTrial) {
+            var trialInput = gid('admin-vch-trial-days-input');
+            var tDays = trialInput ? parseInt(trialInput.value, 10) : Profile.adminVchTrialDays;
+            durationDays = (!isNaN(tDays) && tDays > 0) ? tDays : 7;
+            tier = 'trial';
+        } else {
+            var vipInput = gid('admin-vch-vip-days-input');
+            var vDays = vipInput ? parseInt(vipInput.value, 10) : Profile.adminVchVipDays;
+            durationDays = (!isNaN(vDays) && vDays >= 0) ? vDays : 30;
+            if (durationDays === 0) {
+                tier = 'permanent';
+            } else if (durationDays === 30) {
+                tier = '1month';
+            } else if (durationDays === 60) {
+                tier = '2months';
+            } else if (durationDays === 150) {
+                tier = '5months';
+            } else {
+                tier = 'custom';
+            }
+        }
+
+        // Quota / Max Uses (Pilihan atau Ketikan)
+        var quotaInput = gid('admin-vch-quota-input');
+        var rawQuota = quotaInput ? parseInt(quotaInput.value, 10) : Profile.adminVchQuotaVal;
+        var maxUses = (!isNaN(rawQuota) && rawQuota !== 0) ? rawQuota : 1;
+        if (Profile.adminVchQuotaPreset === 'unlimited' || maxUses < 0) {
+            maxUses = -1;
+        }
+
+        // Batas Waktu Kadaluarsa (Pilihan atau Ketikan)
+        var expiryInput = gid('admin-vch-expiry-input');
+        var expiresAt = null;
+        if (expiryInput && expiryInput.value) {
+            var expTime = new Date(expiryInput.value).getTime();
+            if (!isNaN(expTime) && expTime > Date.now()) {
+                expiresAt = expTime;
+            }
+        } else if (Profile.adminVchExpiryVal) {
+            var expTime = new Date(Profile.adminVchExpiryVal).getTime();
+            if (!isNaN(expTime) && expTime > Date.now()) {
+                expiresAt = expTime;
+            }
+        }
+
+        var nameInput = gid('admin-vch-name-input');
+        var name = (nameInput?.value || '').trim();
+        if (!name) {
+            if (isTrial) {
+                name = `Voucher Trial VIP (${durationDays} Hari)`;
+            } else if (tier === 'permanent' || durationDays === 0) {
+                name = 'Voucher VIP Sultan Permanen';
+            } else {
+                name = `Voucher VIP (${durationDays} Hari)`;
+            }
+        }
+
+        var btn = gid('admin-create-vch-btn');
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i><span>Menerbitkan...</span>';
+            if (window.lucide) lucide.createIcons();
+        }
+
+        try {
+            var res = await fetch('/api/vouchers?action=admin_create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-admin-token': token
+                },
+                body: JSON.stringify({
+                    code: code,
+                    isTrial: isTrial,
+                    tier: tier,
+                    durationDays: durationDays,
+                    maxUses: maxUses,
+                    name: name,
+                    expiresAt: expiresAt
+                })
+            });
+            var data = await res.json();
+
+            if (data && data.status) {
+                if (typeof showToast === 'function') showToast(data.message || 'Kode voucher berhasil dibuat!');
+                if (codeInput) codeInput.value = '';
+                if (nameInput) nameInput.value = '';
+                Profile.loadAdminVouchersTab(false);
+            } else {
+                if (typeof showToast === 'function') showToast(data?.message || 'Gagal menerbitkan kode voucher');
+            }
+        } catch (e) {
+            if (typeof showToast === 'function') showToast('Terjadi kesalahan koneksi: ' + e.message);
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="ticket" class="w-4 h-4 fill-black"></i><span>Terbitkan Kode Voucher Sekarang</span>';
+                if (window.lucide) lucide.createIcons();
+            }
+        }
+    },
+
+    async toggleVoucherStatus(voucherId) {
+        var token = Profile.getAdminToken();
+        if (!token) return;
+
+        try {
+            var res = await fetch('/api/vouchers?action=admin_toggle', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-admin-token': token
+                },
+                body: JSON.stringify({ id: voucherId })
+            });
+            var data = await res.json();
+            if (data && data.status) {
+                if (typeof showToast === 'function') showToast(data.message);
+                Profile.loadAdminVouchersTab(false);
+            } else {
+                if (typeof showToast === 'function') showToast(data?.message || 'Gagal mengubah status voucher');
+            }
+        } catch (e) {
+            if (typeof showToast === 'function') showToast('Terjadi kesalahan koneksi');
+        }
+    },
+
+    deleteVoucher(voucherId, code) {
+        var token = Profile.getAdminToken();
+        if (!token) return;
+
+        Profile.showConfirmModal({
+            title: 'Hapus Kode Voucher VIP',
+            message: `Apakah Anda yakin ingin menghapus kode voucher "${code}"? Voucher ini tidak akan bisa diklaim lagi oleh pengguna.`,
+            confirmText: 'Ya, Hapus Voucher',
+            confirmClass: 'bg-rose-600 hover:bg-rose-700 shadow-rose-500/30',
+            onConfirm: async function() {
+                try {
+                    var res = await fetch('/api/vouchers?action=admin_delete', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-admin-token': token
+                        },
+                        body: JSON.stringify({ id: voucherId })
+                    });
+                    var data = await res.json();
+                    if (data && data.status) {
+                        if (typeof showToast === 'function') showToast(data.message || 'Voucher berhasil dihapus');
+                        Profile.loadAdminVouchersTab(false);
+                    } else {
+                        if (typeof showToast === 'function') showToast(data?.message || 'Gagal menghapus voucher');
+                    }
+                } catch (e) {
+                    if (typeof showToast === 'function') showToast('Terjadi kesalahan koneksi');
+                }
+            }
+        });
+    },
+
+    copyVoucherCode(code) {
+        if (!code) return;
+        try {
+            navigator.clipboard.writeText(code).then(function() {
+                if (typeof showToast === 'function') showToast(`📋 Kode "${code}" berhasil disalin ke papan klip!`);
+            }).catch(function() {
+                if (typeof showToast === 'function') showToast(`Kode voucher: ${code}`);
+            });
+        } catch(e) {
+            if (typeof showToast === 'function') showToast(`Kode voucher: ${code}`);
+        }
+    },
+
+    toggleVoucherRedeemedList(voucherId) {
+        var el = gid('vch-users-' + voucherId);
+        var chev = gid('vch-chev-' + voucherId);
+        if (!el) return;
+        var isHidden = el.classList.contains('hidden');
+        if (isHidden) {
+            el.classList.remove('hidden');
+            if (chev) chev.style.transform = 'rotate(180deg)';
+        } else {
+            el.classList.add('hidden');
+            if (chev) chev.style.transform = 'rotate(0deg)';
         }
     }
 };

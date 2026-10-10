@@ -566,16 +566,13 @@ var Auth = {
     toggleVipMembershipPanel() {
         var content = gid('vip-membership-content');
         var chevron = gid('vip-panel-chevron');
-        var toggleText = gid('vip-panel-toggle-text');
         if (!content) return;
         if (content.classList.contains('hidden')) {
             content.classList.remove('hidden');
             if (chevron) chevron.style.transform = 'rotate(180deg)';
-            if (toggleText) toggleText.innerText = '';
         } else {
             content.classList.add('hidden');
             if (chevron) chevron.style.transform = 'rotate(0deg)';
-            if (toggleText) toggleText.innerText = 'Buka';
         }
     },
 
@@ -721,7 +718,8 @@ var Auth = {
         var bUrl = Auth.getBorderUrl(u);
         var bName = Auth.getBorderName(u);
         var isVipExpired = u.vipExpiresAt && Date.now() > u.vipExpiresAt;
-        var isUserVip = (isMasterAdmin || !!u.isPremium || !!u.is_premium) && !isVipExpired;
+        var isTierActive = Boolean(u.vipTier && u.vipTier !== 'none');
+        var isUserVip = (isMasterAdmin || ((Boolean(u.isPremium || u.is_premium || isTierActive)) && u.vipTier !== 'none')) && !isVipExpired;
 
         return `
         <div>
@@ -814,7 +812,8 @@ var Auth = {
         var isVerified = ((u.email || '').toLowerCase().trim() === 'jrnabil570@gmail.com');
         var isMasterAdmin = ((u.email || '').toLowerCase().trim() === 'jrnabil570@gmail.com') || (u.username === 'nabil');
         var isVipExpired = u.vipExpiresAt && Date.now() > u.vipExpiresAt;
-        var isUserVip = (isMasterAdmin || !!u.isPremium || !!u.is_premium) && !isVipExpired;
+        var isTierActive = Boolean(u.vipTier && u.vipTier !== 'none');
+        var isUserVip = (isMasterAdmin || ((Boolean(u.isPremium || u.is_premium || isTierActive)) && u.vipTier !== 'none')) && !isVipExpired;
         var badgeS = Auth.getBadgeSettings();
         var userIdVal = u.id || u.userId || u._id || 'usr_' + Date.now();
         var userIp = u.ip || u.lastIp || Auth.clientIp || '114.122.45.10';
@@ -870,7 +869,7 @@ var Auth = {
             </div>
 
             <!-- Full Page Scrollable Body -->
-            <div class="flex-1 overflow-y-auto overscroll-contain hide-scrollbar p-4 max-w-md mx-auto w-full pb-32 space-y-4">
+            <div class="flex-1 overflow-y-auto overscroll-contain hide-scrollbar p-4 sm:p-6 max-w-2xl mx-auto w-full pb-32 space-y-4">
                 
                 <!-- CARD 1: AVATAR SELECTION (Sesuai Desain Screenshot) -->
                 <div class="p-5 rounded-3xl bg-[#12141c]/90 border border-white/10 backdrop-blur-xl shadow-xl space-y-5">
@@ -952,10 +951,6 @@ var Auth = {
                             </div>
                         </div>
                         <div class="flex items-center gap-2 shrink-0">
-                            <span id="modal-vip-status-badge" class="text-[9px] font-bold px-2 py-0.5 rounded-full ${isUserVip ? 'bg-gradient-to-r from-amber-400 to-yellow-500 text-black shadow-sm' : (isVipExpired ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30' : 'bg-white/10 text-white/50')} font-mono">
-                                ${isUserVip ? (isMasterAdmin ? 'OFFICIAL ADMIN' : 'VIP AKTIF') : (isVipExpired ? 'KEDALUWARSA' : 'NON-VIP')}
-                            </span>
-                            <span id="vip-panel-toggle-text" class="text-[9px] font-extrabold text-amber-300 bg-amber-400/20 border border-amber-400/35 px-2 py-0.5 rounded-full shadow-sm"></span>
                             <i id="vip-panel-chevron" data-lucide="chevron-down" class="w-4 h-4 text-amber-400 transition-transform duration-300"></i>
                         </div>
                     </button>
@@ -1052,7 +1047,6 @@ var Auth = {
                             </div>
                         </div>
                         <div class="flex items-center gap-1.5">
-                            <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-lime-400/15 text-lime-300 border border-lime-400/30 font-mono">9 Rank</span>
                             <i id="rank-badge-chevron" data-lucide="chevron-down" class="w-4 h-4 text-lime-400 transition-transform duration-200"></i>
                         </div>
                     </button>
@@ -1259,9 +1253,6 @@ var Auth = {
                             </div>
                         </div>
                         <div class="flex items-center gap-1.5">
-                            <span class="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/25 font-mono">
-                                <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 inline-block mr-1 animate-pulse"></span>AKTIF
-                            </span>
                             <i id="network-info-chevron" data-lucide="chevron-down" class="w-4 h-4 text-cyan-400 transition-transform duration-200"></i>
                         </div>
                     </button>
@@ -1306,7 +1297,6 @@ var Auth = {
                             </div>
                         </div>
                         <div class="flex items-center gap-1.5">
-                            <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-300 border border-sky-500/30 font-mono">Kelola</span>
                             <i id="credentials-chevron" data-lucide="chevron-down" class="w-4 h-4 text-sky-400 transition-transform duration-200"></i>
                         </div>
                     </button>
@@ -1462,7 +1452,6 @@ var Auth = {
                         </div>
                     </div>
                     <div class="flex items-center gap-1.5">
-                        <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-white/10 text-white/60 border border-white/10 uppercase font-mono">Baru</span>
                         <i data-lucide="chevron-right" class="w-4 h-4 text-white/40"></i>
                     </div>
                 </button>
@@ -1953,7 +1942,9 @@ var Auth = {
         }
 
         var u = Auth.currentUser || {};
-        var isUserPremium = !!u.isPremium || !!u.is_premium || ((u.email || '').toLowerCase().trim() === 'jrnabil570@gmail.com');
+        var isTierActive = Boolean(u.vipTier && u.vipTier !== 'none');
+        var isVipExpired = u.vipExpiresAt && Date.now() > u.vipExpiresAt;
+        var isUserPremium = ((u.email || '').toLowerCase().trim() === 'jrnabil570@gmail.com') || (Boolean(u.isPremium || u.is_premium || isTierActive) && u.vipTier !== 'none' && !isVipExpired);
         var currentAvatar = u.avatar || '';
 
         grid.innerHTML = filtered.map(function(av) {
@@ -2006,7 +1997,9 @@ var Auth = {
     async selectAvatar(encodedUrl, isPremium, avatarId) {
         var url = decodeURIComponent(encodedUrl);
         var u = Auth.currentUser || {};
-        var isUserPremium = !!u.isPremium || !!u.is_premium || ((u.email || '').toLowerCase().trim() === 'jrnabil570@gmail.com');
+        var isTierActive = Boolean(u.vipTier && u.vipTier !== 'none');
+        var isVipExpired = u.vipExpiresAt && Date.now() > u.vipExpiresAt;
+        var isUserPremium = ((u.email || '').toLowerCase().trim() === 'jrnabil570@gmail.com') || (Boolean(u.isPremium || u.is_premium || isTierActive) && u.vipTier !== 'none' && !isVipExpired);
 
         if (isPremium && !isUserPremium) {
             showToast('Avatar ini terkunci khusus pengguna Premium / VIP!');
@@ -2085,9 +2078,11 @@ var Auth = {
         var adminTok = (typeof Profile !== 'undefined' && Profile.getAdminToken) ? Profile.getAdminToken() : (sessionStorage.getItem('musifystar_admin_token') || localStorage.getItem('musifystar_admin_token') || '');
         var myEmail = String(u.email || u.rawEmail || '').toLowerCase().trim();
         var myUsername = String(u.username || '').toLowerCase().trim();
-        var isMasterAdmin = (myEmail === 'jrnabil570@gmail.com') || (myUsername === 'nabil') || (u.role === 'admin') || !!adminTok;
-        var isUserVip = isMasterAdmin || !!u.isPremium || !!u.is_premium;
-        var userVipTier = isMasterAdmin ? 'permanent' : (u.vipTier || (isUserVip ? 'permanent' : 'none'));
+        var isMasterAdmin = (myEmail === 'jrnabil570@gmail.com') || (myUsername === 'nabil');
+        var isVipExpired = u.vipExpiresAt && Date.now() > u.vipExpiresAt;
+        var isTierActive = Boolean(u.vipTier && u.vipTier !== 'none');
+        var isUserVip = isMasterAdmin || ((Boolean(u.isPremium || u.is_premium || isTierActive)) && u.vipTier !== 'none' && !isVipExpired);
+        var userVipTier = isMasterAdmin ? 'permanent' : (isUserVip ? (u.vipTier || 'permanent') : 'none');
         var avatarUrl = u.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(u.username || 'user')}`;
         var currentBorder = u.border || 'none';
 
@@ -2285,8 +2280,10 @@ var Auth = {
         var adminTok = (typeof Profile !== 'undefined' && Profile.getAdminToken) ? Profile.getAdminToken() : (sessionStorage.getItem('musifystar_admin_token') || localStorage.getItem('musifystar_admin_token') || '');
         var myEmail = String(u.email || u.rawEmail || '').toLowerCase().trim();
         var myUsername = String(u.username || '').toLowerCase().trim();
-        var isMasterAdmin = (myEmail === 'jrnabil570@gmail.com') || (myUsername === 'nabil') || (u.role === 'admin') || !!adminTok;
-        var isUserVip = isMasterAdmin || !!u.isPremium || !!u.is_premium;
+        var isMasterAdmin = (myEmail === 'jrnabil570@gmail.com') || (myUsername === 'nabil');
+        var isVipExpired = u.vipExpiresAt && Date.now() > u.vipExpiresAt;
+        var isTierActive = Boolean(u.vipTier && u.vipTier !== 'none');
+        var isUserVip = isMasterAdmin || ((Boolean(u.isPremium || u.is_premium || isTierActive)) && u.vipTier !== 'none' && !isVipExpired);
 
         var allTabs = ['unlocked', 'all', 'platinum', 'master', 'legend', 'immortal'];
         allTabs.forEach(function(t) {
@@ -2323,9 +2320,11 @@ var Auth = {
         var adminTok = (typeof Profile !== 'undefined' && Profile.getAdminToken) ? Profile.getAdminToken() : (sessionStorage.getItem('musifystar_admin_token') || localStorage.getItem('musifystar_admin_token') || '');
         var myEmail = String(u.email || u.rawEmail || '').toLowerCase().trim();
         var myUsername = String(u.username || '').toLowerCase().trim();
-        var isMasterAdmin = (myEmail === 'jrnabil570@gmail.com') || (myUsername === 'nabil') || (u.role === 'admin') || !!adminTok;
-        var isUserVip = isMasterAdmin || !!u.isPremium || !!u.is_premium;
-        var userVipTier = isMasterAdmin ? 'permanent' : (u.vipTier || (isUserVip ? 'permanent' : 'none'));
+        var isMasterAdmin = (myEmail === 'jrnabil570@gmail.com') || (myUsername === 'nabil');
+        var isVipExpired = u.vipExpiresAt && Date.now() > u.vipExpiresAt;
+        var isTierActive = Boolean(u.vipTier && u.vipTier !== 'none');
+        var isUserVip = isMasterAdmin || ((Boolean(u.isPremium || u.is_premium || isTierActive)) && u.vipTier !== 'none' && !isVipExpired);
+        var userVipTier = isMasterAdmin ? 'permanent' : (isUserVip ? (u.vipTier || 'permanent') : 'none');
         var avatarUrl = u.avatar || `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(u.username || 'user')}`;
         var currentBorder = u.border || 'none';
 
@@ -2463,9 +2462,11 @@ var Auth = {
         var adminTok = (typeof Profile !== 'undefined' && Profile.getAdminToken) ? Profile.getAdminToken() : (sessionStorage.getItem('musifystar_admin_token') || localStorage.getItem('musifystar_admin_token') || '');
         var myEmail = String(u.email || u.rawEmail || '').toLowerCase().trim();
         var myUsername = String(u.username || '').toLowerCase().trim();
-        var isMasterAdmin = (myEmail === 'jrnabil570@gmail.com') || (myUsername === 'nabil') || (u.role === 'admin') || !!adminTok;
-        var isUserVip = isMasterAdmin || !!u.isPremium || !!u.is_premium;
-        var userVipTier = isMasterAdmin ? 'permanent' : (u.vipTier || (isUserVip ? 'permanent' : 'none'));
+        var isMasterAdmin = (myEmail === 'jrnabil570@gmail.com') || (myUsername === 'nabil');
+        var isVipExpired = u.vipExpiresAt && Date.now() > u.vipExpiresAt;
+        var isTierActive = Boolean(u.vipTier && u.vipTier !== 'none');
+        var isUserVip = isMasterAdmin || ((Boolean(u.isPremium || u.is_premium || isTierActive)) && u.vipTier !== 'none' && !isVipExpired);
+        var userVipTier = isMasterAdmin ? 'permanent' : (isUserVip ? (u.vipTier || 'permanent') : 'none');
 
         var allBorders = Auth.availableBorders || [];
         var target = allBorders.find(function(b) { return b.id === borderId; });

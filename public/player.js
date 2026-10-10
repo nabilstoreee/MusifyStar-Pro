@@ -350,13 +350,21 @@ document.addEventListener('visibilitychange', function() {
             }
         }
     } else {
+        // Tab / Aplikasi diminimalkan atau layar mati
         if (window._musifyBackgroundPlay === false) {
+            // Pengguna secara eksplisit mematikan opsi putar di latar belakang
             if (AU && !AU.paused) {
                 AU.pause();
                 if (typeof S !== 'undefined') { S.ip = false; UB(); }
             }
+            releaseAudioWakeLock();
+        } else {
+            // Default: Tetap pertahankan pemutaran audio di latar belakang
+            // Jangan release wake lock jika musik masih berputar
+            if (AU && !AU.paused) {
+                updateMediaSessionPlaybackState();
+            }
         }
-        releaseAudioWakeLock();
     }
 });
 

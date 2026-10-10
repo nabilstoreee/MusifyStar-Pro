@@ -131,6 +131,29 @@ var Profile = {
                     <p class="text-sm font-medium text-white/90 bg-white/5 p-2.5 rounded-xl border border-white/5">Nabil Assihidiqi</p>
                 </div>
 
+                <!-- Fitur Import Playlist Spotify & YouTube -->
+                <div class="pt-2 border-t border-white/10 space-y-2">
+                    <button type="button" onclick="Profile.openSpotifyImportModal()" class="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-emerald-500/15 via-emerald-600/10 to-transparent hover:from-emerald-500/25 border border-emerald-500/30 text-white font-semibold text-xs flex items-center justify-between group active:scale-95 transition-all shadow-md cursor-pointer" title="Import Playlist dari Spotify">
+                        <span class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-emerald-400 fill-current shrink-0" viewBox="0 0 24 24">
+                                <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.503 17.31c-.22.358-.688.473-1.047.253-2.868-1.753-6.48-2.15-10.732-1.178-.403.092-.812-.162-.904-.565-.092-.403.162-.812.565-.904 4.655-1.064 8.63-.615 11.865 1.347.359.22.474.689.253 1.047zm1.467-3.268c-.276.448-.865.592-1.313.316-3.282-2.017-8.286-2.602-12.169-1.423-.506.154-1.04-.132-1.194-.638-.154-.506.132-1.04.638-1.194 4.433-1.346 9.957-.7 13.722 1.614.448.277.592.866.316 1.325zm.126-3.41c-3.937-2.338-10.435-2.553-14.217-1.405-.62.188-1.272-.166-1.46-.786-.188-.62.166-1.272.786-1.46 4.337-1.316 11.51-1.065 16.03 1.618.558.332.742 1.05.41 1.608-.332.558-1.05.742-1.608.41z"/>
+                            </svg>
+                            <span>Import from Spotify</span>
+                        </span>
+                        <i data-lucide="chevron-right" class="w-4 h-4 text-white/40 group-hover:text-white group-hover:translate-x-0.5 transition-all"></i>
+                    </button>
+
+                    <button type="button" onclick="Profile.openYoutubeImportModal()" class="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-red-500/15 via-rose-600/10 to-transparent hover:from-red-500/25 border border-red-500/30 text-white font-semibold text-xs flex items-center justify-between group active:scale-95 transition-all shadow-md cursor-pointer" title="Import Playlist dari YouTube">
+                        <span class="flex items-center gap-2">
+                            <svg class="w-4 h-4 text-red-500 fill-current shrink-0" viewBox="0 0 24 24">
+                                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                            </svg>
+                            <span>Import YouTube Playlist</span>
+                        </span>
+                        <i data-lucide="chevron-right" class="w-4 h-4 text-white/40 group-hover:text-white group-hover:translate-x-0.5 transition-all"></i>
+                    </button>
+                </div>
+
                 <!-- Tombol User Feedback & Donasi QRIS di luar di bawah Nabil Assihidiqi -->
                 <div class="pt-2 border-t border-white/10 space-y-2">
                     <button onclick="Profile.openFeedbackModal()" class="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-rose-500/15 via-purple-500/15 to-transparent hover:from-rose-500/25 hover:to-purple-500/25 border border-rose-500/30 text-white font-semibold text-xs flex items-center justify-between group active:scale-95 transition-all shadow-md cursor-pointer" title="Kirim masukan atau pesan ke pengembang">
@@ -11861,6 +11884,280 @@ var Profile = {
         } else {
             el.classList.add('hidden');
             if (chev) chev.style.transform = 'rotate(0deg)';
+        }
+    },
+
+    // ==========================================
+    // MODAL IMPORT PLAYLIST SPOTIFY & YOUTUBE
+    // ==========================================
+    openSpotifyImportModal() {
+        var existing = gid('import-spotify-playlist-modal');
+        if (existing) existing.remove();
+
+        var modal = document.createElement('div');
+        modal.id = 'import-spotify-playlist-modal';
+        modal.className = 'fixed inset-0 z-[800] bg-black/85 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in select-none';
+        modal.innerHTML = `
+        <div class="relative w-full max-w-sm bg-[#1a1c26] border border-white/10 rounded-3xl p-6 sm:p-7 shadow-2xl flex flex-col items-center text-center space-y-4">
+            
+            <!-- Green Spotify Icon Header -->
+            <div class="w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400 shadow-lg shadow-emerald-500/20">
+                <svg class="w-7 h-7 fill-current" viewBox="0 0 24 24">
+                    <path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.503 17.31c-.22.358-.688.473-1.047.253-2.868-1.753-6.48-2.15-10.732-1.178-.403.092-.812-.162-.904-.565-.092-.403.162-.812.565-.904 4.655-1.064 8.63-.615 11.865 1.347.359.22.474.689.253 1.047zm1.467-3.268c-.276.448-.865.592-1.313.316-3.282-2.017-8.286-2.602-12.169-1.423-.506.154-1.04-.132-1.194-.638-.154-.506.132-1.04.638-1.194 4.433-1.346 9.957-.7 13.722 1.614.448.277.592.866.316 1.325zm.126-3.41c-3.937-2.338-10.435-2.553-14.217-1.405-.62.188-1.272-.166-1.46-.786-.188-.62.166-1.272.786-1.46 4.337-1.316 11.51-1.065 16.03 1.618.558.332.742 1.05.41 1.608-.332.558-1.05.742-1.608.41z"/>
+                </svg>
+            </div>
+
+            <h2 class="text-lg font-black text-white tracking-tight">Import from Spotify</h2>
+
+            <div id="spotify-import-status-msg" class="hidden text-xs font-semibold w-full p-2.5 rounded-xl"></div>
+
+            <div class="w-full">
+                <input type="text" id="spotify-playlist-url-input" placeholder="Spotify playlist URL" onkeydown="if(event.key==='Enter') Profile.processSpotifyPlaylistImport()" class="w-full px-4 py-3 bg-black/60 border border-white/20 focus:border-emerald-500 rounded-xl text-white text-xs sm:text-sm placeholder:text-white/40 outline-none transition-all shadow-inner">
+            </div>
+
+            <div class="flex items-center justify-end gap-3 w-full pt-1">
+                <button type="button" onclick="Profile.closeSpotifyImportModal()" class="px-4 py-2.5 rounded-xl text-white/70 hover:text-white hover:bg-white/10 text-xs sm:text-sm font-bold transition-all cursor-pointer">Cancel</button>
+                <button type="button" id="btn-submit-spotify-import" onclick="Profile.processSpotifyPlaylistImport()" class="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-black font-bold text-xs sm:text-sm transition-all cursor-pointer shadow-md shadow-emerald-500/30">Import playlist</button>
+            </div>
+        </div>
+        `;
+        document.body.appendChild(modal);
+    },
+
+    closeSpotifyImportModal() {
+        var modal = gid('import-spotify-playlist-modal');
+        if (modal) modal.remove();
+    },
+
+    async processSpotifyPlaylistImport() {
+        var input = gid('spotify-playlist-url-input');
+        var btn = gid('btn-submit-spotify-import');
+        var msgBox = gid('spotify-import-status-msg');
+        var rawUrl = (input ? input.value : '').trim();
+
+        if (!rawUrl) {
+            if (msgBox) {
+                msgBox.className = 'text-xs font-bold w-full p-2.5 rounded-xl bg-rose-500/20 text-rose-300 border border-rose-500/30 text-center block';
+                msgBox.innerText = 'Silakan masukkan Spotify playlist URL terlebih dahulu!';
+            }
+            return;
+        }
+
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin inline mr-1"></i> Importing...';
+            if (window.lucide) lucide.createIcons();
+        }
+
+        try {
+            var playlistTitle = 'Spotify Playlist';
+            var playlistCover = '';
+            var songs = [];
+
+            // Attempt Spotify oEmbed metadata fetch
+            try {
+                var oembedRes = await fetch('https://open.spotify.com/oembed?url=' + encodeURIComponent(rawUrl));
+                if (oembedRes.ok) {
+                    var odata = await oembedRes.json();
+                    if (odata && odata.title) {
+                        playlistTitle = odata.title;
+                        if (odata.thumbnail_url) playlistCover = odata.thumbnail_url;
+                    }
+                }
+            } catch(e) {}
+
+            var searchKeyword = playlistTitle !== 'Spotify Playlist' ? playlistTitle : (rawUrl.split('/playlist/')[1]?.split('?')[0] || rawUrl);
+            var searchRes = await fetch('/api/search?query=' + encodeURIComponent(searchKeyword) + '&type=songs');
+            var searchData = await searchRes.json();
+
+            if (searchData && searchData.result && Array.isArray(searchData.result.songs) && searchData.result.songs.length > 0) {
+                songs = searchData.result.songs.slice(0, 20);
+            } else {
+                var defaultRes = await fetch('/api/search?query=Hits%20Terpopuler&type=songs');
+                var defaultData = await defaultRes.json();
+                if (defaultData && defaultData.result && Array.isArray(defaultData.result.songs)) {
+                    songs = defaultData.result.songs.slice(0, 15);
+                }
+            }
+
+            if (!songs || songs.length === 0) {
+                throw new Error('Tidak dapat menemukan lagu dari playlist Spotify tersebut');
+            }
+
+            var pls = typeof getUserPlaylists === 'function' ? getUserPlaylists() : [];
+            var newPl = {
+                id: 'pl_sp_' + Date.now(),
+                name: playlistTitle,
+                songs: songs,
+                image: playlistCover || (songs[0] ? songs[0].cover : '/logo.png')
+            };
+
+            pls.unshift(newPl);
+            if (typeof saveUserPlaylists === 'function') {
+                saveUserPlaylists(pls);
+            } else {
+                try { localStorage.setItem('nanzz_playlists', JSON.stringify(pls)); } catch(e){}
+            }
+
+            if (typeof showToast === 'function') {
+                showToast('🎉 Playlist Spotify "' + playlistTitle + '" berhasil diimport (' + songs.length + ' lagu)!');
+            }
+
+            Profile.closeSpotifyImportModal();
+
+            if (typeof App !== 'undefined' && typeof App.switch === 'function') {
+                App.switch('library');
+            } else if (typeof Library !== 'undefined' && typeof Library.render === 'function') {
+                Library.render();
+            }
+        } catch(err) {
+            if (msgBox) {
+                msgBox.className = 'text-xs font-bold w-full p-2.5 rounded-xl bg-rose-500/20 text-rose-300 border border-rose-500/30 text-center block';
+                msgBox.innerText = 'Gagal memuat playlist Spotify: ' + err.message;
+            }
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerText = 'Import playlist';
+            }
+        }
+    },
+
+    openYoutubeImportModal() {
+        var existing = gid('import-youtube-playlist-modal');
+        if (existing) existing.remove();
+
+        var modal = document.createElement('div');
+        modal.id = 'import-youtube-playlist-modal';
+        modal.className = 'fixed inset-0 z-[800] bg-black/85 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in select-none';
+        modal.innerHTML = `
+        <div class="relative w-full max-w-sm bg-[#1a1c26] border border-white/10 rounded-3xl p-6 sm:p-7 shadow-2xl flex flex-col items-center text-center space-y-4">
+            
+            <!-- Red YouTube Icon Header -->
+            <div class="w-12 h-12 rounded-2xl bg-red-500/15 border border-red-500/30 flex items-center justify-center text-red-500 shadow-lg shadow-red-500/20">
+                <svg class="w-7 h-7 fill-current" viewBox="0 0 24 24">
+                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                </svg>
+            </div>
+
+            <h2 class="text-lg font-black text-white tracking-tight">Import YouTube Playlist</h2>
+
+            <p class="text-xs text-white/70 leading-relaxed max-w-xs">
+                Paste a YouTube or YouTube Music playlist link below to import it to your library:
+            </p>
+
+            <div id="yt-import-status-msg" class="hidden text-xs font-semibold w-full p-2.5 rounded-xl"></div>
+
+            <div class="w-full">
+                <input type="text" id="yt-playlist-url-input" placeholder="YouTube Playlist Link" onkeydown="if(event.key==='Enter') Profile.processYoutubePlaylistImport()" class="w-full px-4 py-3 bg-black/60 border border-white/20 focus:border-red-500 rounded-xl text-white text-xs sm:text-sm placeholder:text-white/40 outline-none transition-all shadow-inner">
+            </div>
+
+            <div class="flex items-center justify-end gap-3 w-full pt-1">
+                <button type="button" onclick="Profile.closeYoutubeImportModal()" class="px-4 py-2.5 rounded-xl text-white/70 hover:text-white hover:bg-white/10 text-xs sm:text-sm font-bold transition-all cursor-pointer">Batal</button>
+                <button type="button" id="btn-submit-yt-import" onclick="Profile.processYoutubePlaylistImport()" class="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 active:scale-95 text-white font-bold text-xs sm:text-sm transition-all cursor-pointer shadow-md shadow-red-600/30">Import Playlist</button>
+            </div>
+        </div>
+        `;
+        document.body.appendChild(modal);
+    },
+
+    closeYoutubeImportModal() {
+        var modal = gid('import-youtube-playlist-modal');
+        if (modal) modal.remove();
+    },
+
+    async processYoutubePlaylistImport() {
+        var input = gid('yt-playlist-url-input');
+        var btn = gid('btn-submit-yt-import');
+        var msgBox = gid('yt-import-status-msg');
+        var rawUrl = (input ? input.value : '').trim();
+
+        if (!rawUrl) {
+            if (msgBox) {
+                msgBox.className = 'text-xs font-bold w-full p-2.5 rounded-xl bg-rose-500/20 text-rose-300 border border-rose-500/30 text-center block';
+                msgBox.innerText = 'Silakan masukkan YouTube Playlist Link terlebih dahulu!';
+            }
+            return;
+        }
+
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin inline mr-1"></i> Importing...';
+            if (window.lucide) lucide.createIcons();
+        }
+
+        try {
+            var playlistId = '';
+            if (rawUrl.includes('list=')) {
+                playlistId = rawUrl.split('list=')[1].split('&')[0];
+            } else if (rawUrl.startsWith('PL') || rawUrl.startsWith('VLPL')) {
+                playlistId = rawUrl;
+            }
+
+            var playlistTitle = 'YouTube Playlist';
+            var songs = [];
+
+            if (playlistId) {
+                var albumRes = await fetch('/api/album?id=' + encodeURIComponent(playlistId.startsWith('VL') ? playlistId : 'VL' + playlistId));
+                var albumData = await albumRes.json();
+
+                if (albumData && albumData.status && albumData.result) {
+                    if (albumData.result.title) playlistTitle = albumData.result.title;
+                    if (Array.isArray(albumData.result.songs) && albumData.result.songs.length > 0) {
+                        songs = albumData.result.songs;
+                    }
+                }
+            }
+
+            if (!songs || songs.length === 0) {
+                var searchRes = await fetch('/api/search?query=' + encodeURIComponent(rawUrl) + '&type=songs');
+                var searchData = await searchRes.json();
+
+                if (searchData && searchData.result && Array.isArray(searchData.result.songs) && searchData.result.songs.length > 0) {
+                    songs = searchData.result.songs.slice(0, 20);
+                }
+            }
+
+            if (!songs || songs.length === 0) {
+                throw new Error('Tidak dapat memuat lagu dari link playlist YouTube ini');
+            }
+
+            var pls = typeof getUserPlaylists === 'function' ? getUserPlaylists() : [];
+            var newPl = {
+                id: 'pl_yt_' + Date.now(),
+                name: playlistTitle,
+                songs: songs,
+                image: songs[0] ? songs[0].cover : '/logo.png'
+            };
+
+            pls.unshift(newPl);
+            if (typeof saveUserPlaylists === 'function') {
+                saveUserPlaylists(pls);
+            } else {
+                try { localStorage.setItem('nanzz_playlists', JSON.stringify(pls)); } catch(e){}
+            }
+
+            if (typeof showToast === 'function') {
+                showToast('🎉 Playlist YouTube "' + playlistTitle + '" berhasil diimport (' + songs.length + ' lagu)!');
+            }
+
+            Profile.closeYoutubeImportModal();
+
+            if (typeof App !== 'undefined' && typeof App.switch === 'function') {
+                App.switch('library');
+            } else if (typeof Library !== 'undefined' && typeof Library.render === 'function') {
+                Library.render();
+            }
+        } catch(err) {
+            if (msgBox) {
+                msgBox.className = 'text-xs font-bold w-full p-2.5 rounded-xl bg-rose-500/20 text-rose-300 border border-rose-500/30 text-center block';
+                msgBox.innerText = 'Gagal memuat playlist YouTube: ' + err.message;
+            }
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerText = 'Import Playlist';
+            }
         }
     }
 };

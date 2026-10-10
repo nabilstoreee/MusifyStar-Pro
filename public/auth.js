@@ -3048,9 +3048,13 @@ var Auth = {
                     window.dispatchEvent(new CustomEvent('musifystar:user_badge_updated', {
                         detail: { user: Auth.currentUser }
                     }));
+                    window.dispatchEvent(new CustomEvent('musifystar:user_profile_updated', {
+                        detail: { user: Auth.currentUser }
+                    }));
                 } catch(e) {}
-                if (typeof GlobalStats !== 'undefined' && typeof GlobalStats.renderCurrentTab === 'function') {
-                    GlobalStats.renderCurrentTab();
+                if (typeof GlobalStats !== 'undefined') {
+                    if (typeof GlobalStats.onUserProfileUpdated === 'function') GlobalStats.onUserProfileUpdated(Auth.currentUser);
+                    if (typeof GlobalStats.renderCurrentTab === 'function') GlobalStats.renderCurrentTab();
                 }
             } else {
                 if (typeof showToast === 'function') showToast(data?.message || 'Gagal mengubah lencana');
@@ -3086,6 +3090,16 @@ var Auth = {
                 showToast('Username berhasil diperbarui!');
                 Auth.updateHeaderUI();
                 Auth.openUserProfileModal();
+
+                // Dispatch real-time broadcast to GlobalStats & GlobalChat
+                try {
+                    window.dispatchEvent(new CustomEvent('musifystar:user_profile_updated', {
+                        detail: { user: Auth.currentUser }
+                    }));
+                } catch(e) {}
+                if (typeof GlobalStats !== 'undefined' && typeof GlobalStats.onUserProfileUpdated === 'function') {
+                    GlobalStats.onUserProfileUpdated(Auth.currentUser);
+                }
             } else {
                 showToast(data?.message || 'Gagal mengubah username');
             }
@@ -3125,6 +3139,12 @@ var Auth = {
                 showToast('Email berhasil diperbarui!');
                 Auth.updateHeaderUI();
                 Auth.openUserProfileModal();
+
+                try {
+                    window.dispatchEvent(new CustomEvent('musifystar:user_profile_updated', {
+                        detail: { user: Auth.currentUser }
+                    }));
+                } catch(e) {}
             } else {
                 showToast(data?.message || 'Gagal mengubah email');
             }

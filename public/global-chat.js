@@ -213,13 +213,17 @@
         },
 
         // Render Badges Sequence for Chat Messages & Inputs
-        // Order: [Admin Checkmark (Admin Only)] [VIP Badge (If VIP Active)] [Elite Rank Badge] [Border/Immortal Badge]
+        // Order: [Admin Checkmark (Admin Only)] [VIP Badge (If VIP Active)] [Rank Badge (Equipped / Elite)] [Border/Immortal Badge]
         getUserBadgesHTML(opts) {
             if (!opts) opts = {};
             var isAdmin = !!opts.isAdmin;
             var isVip = !!opts.isVip;
             var borderName = opts.borderName || '';
             var borderUrl = opts.borderUrl || '';
+            var equippedBadge = opts.equippedBadge !== undefined ? opts.equippedBadge : '';
+            var equippedBadgeTitle = opts.equippedBadgeTitle !== undefined ? opts.equippedBadgeTitle : '';
+            var equippedBadgeIcon = opts.equippedBadgeIcon !== undefined ? opts.equippedBadgeIcon : '';
+            var equippedBadgeColor = opts.equippedBadgeColor !== undefined ? opts.equippedBadgeColor : '';
 
             var badges = [];
 
@@ -241,15 +245,24 @@
                 }
             }
 
-            // 3. Logo Elite (Rank Badge Pill)
-            if (typeof Auth !== 'undefined' && typeof Auth.getRankBadgePillHTML === 'function') {
-                badges.push(Auth.getRankBadgePillHTML('badge_elite', 'Elite'));
-            } else {
-                badges.push(`
-                <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[8.5px] leading-none font-black border shadow-sm select-none shrink-0 align-middle" style="background: rgba(18, 20, 28, 0.95); border-color: #a855f7; color: #a855f7; box-shadow: 0 0 8px #a855f733;">
-                    <svg class="w-2.5 h-2.5 shrink-0 fill-current" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.3 8.87l5.378-2.689a.5.5 0 0 1 .7.574l-2.002 11.01a1 1 0 0 1-.985.821H5.609a1 1 0 0 1-.985-.821L2.622 6.755a.5.5 0 0 1 .7-.574l5.378 2.689z"/></svg>
-                    <span>Elite</span>
-                </span>`);
+            // 3. Logo Rank Badge Custom yang Dipasang (atau Fallback Elite)
+            if (equippedBadge !== 'badge_none') {
+                if (typeof Auth !== 'undefined' && typeof Auth.getRankBadgePillHTML === 'function') {
+                    if (equippedBadgeTitle || equippedBadge) {
+                        badges.push(Auth.getRankBadgePillHTML(equippedBadge, equippedBadgeTitle, equippedBadgeIcon, equippedBadgeColor));
+                    } else {
+                        badges.push(Auth.getRankBadgePillHTML('badge_elite', 'Elite'));
+                    }
+                } else {
+                    var displayTitle = equippedBadgeTitle || 'Elite';
+                    var displayIcon = equippedBadgeIcon || '⚡';
+                    var displayColor = equippedBadgeColor || '#a855f7';
+                    badges.push(`
+                    <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[8.5px] leading-none font-black border shadow-sm select-none shrink-0 align-middle" style="background: rgba(18, 20, 28, 0.95); border-color: ${displayColor}; color: ${displayColor}; box-shadow: 0 0 8px ${displayColor}33;">
+                        <span>${displayIcon}</span>
+                        <span>${displayTitle}</span>
+                    </span>`);
+                }
             }
 
             // 4. Logo Border Frame / Custom Rank Badge (misal Immortal, Legend, Master, Platinum, dsb)
@@ -274,7 +287,11 @@
                 isAdmin: isMasterAdmin,
                 isVip: userIsVip,
                 borderName: userBorderName,
-                borderUrl: userBorderUrl
+                borderUrl: userBorderUrl,
+                equippedBadge: user ? (user.equippedBadge || '') : '',
+                equippedBadgeTitle: user ? (user.equippedBadgeTitle || '') : '',
+                equippedBadgeIcon: user ? (user.equippedBadgeIcon || '') : '',
+                equippedBadgeColor: user ? (user.equippedBadgeColor || '') : ''
             });
 
             return `
@@ -451,12 +468,21 @@
                 var userVipTier = m.vipTier || m.vip_tier || (isMe ? (u.vipTier || '') : '');
                 var userVipExpires = m.vipExpiresAt || m.vip_expires_at || (isMe ? (u.vipExpiresAt || 0) : 0);
 
-                // Resolve Badges Sequence: [Admin Checkmark (Admin Only)] [VIP Badge (If VIP Active)] [Elite Rank Badge] [Border/Immortal Badge]
+                var eqBadge = isMe ? (u.equippedBadge !== undefined ? u.equippedBadge : (m.equippedBadge || '')) : (m.equippedBadge || '');
+                var eqTitle = isMe ? (u.equippedBadgeTitle !== undefined ? u.equippedBadgeTitle : (m.equippedBadgeTitle || '')) : (m.equippedBadgeTitle || '');
+                var eqIcon = isMe ? (u.equippedBadgeIcon !== undefined ? u.equippedBadgeIcon : (m.equippedBadgeIcon || '')) : (m.equippedBadgeIcon || '');
+                var eqColor = isMe ? (u.equippedBadgeColor !== undefined ? u.equippedBadgeColor : (m.equippedBadgeColor || '')) : (m.equippedBadgeColor || '');
+
+                // Resolve Badges Sequence: [Admin Checkmark (Admin Only)] [VIP Badge (If VIP Active)] [Rank Badge] [Border/Immortal Badge]
                 var userBadgesHtml = GlobalChat.getUserBadgesHTML({
                     isAdmin: isMsgAdmin,
                     isVip: userIsVip,
                     borderName: userBorderName,
-                    borderUrl: userBorderUrl
+                    borderUrl: userBorderUrl,
+                    equippedBadge: eqBadge,
+                    equippedBadgeTitle: eqTitle,
+                    equippedBadgeIcon: eqIcon,
+                    equippedBadgeColor: eqColor
                 });
 
                 // Avatar with border element
@@ -631,6 +657,10 @@
                 isVip: myIsVip,
                 vipTier: myVipTier,
                 vipExpiresAt: myVipExpires,
+                equippedBadge: u.equippedBadge || '',
+                equippedBadgeTitle: u.equippedBadgeTitle || '',
+                equippedBadgeIcon: u.equippedBadgeIcon || '',
+                equippedBadgeColor: u.equippedBadgeColor || '',
                 message: text,
                 badge: isMasterAdmin ? 'Admin' : 'Member',
                 isAdmin: isMasterAdmin,
@@ -1024,8 +1054,8 @@
     // Expose GlobalChat
     window.GlobalChat = GlobalChat;
 
-    // Listen for real-time user profile updates (Username, Avatar, Border)
-    window.addEventListener('musifystar:user_profile_updated', function(e) {
+    // Listen for real-time user profile updates (Username, Avatar, Border, Equipped Badges)
+    function handleUserProfileChange(e) {
         if (GlobalChat.isOpen) {
             var u = (e && e.detail && e.detail.user) || GlobalChat.getCurrentUser();
             var bottomBar = document.getElementById('global-chat-bottom-bar');
@@ -1035,10 +1065,14 @@
                 var isMasterAdmin = (myEmail === 'jrnabil570@gmail.com' || myId === 'u_1790196636099_622dc736');
                 bottomBar.innerHTML = GlobalChat.renderBottomBar(u, isMasterAdmin);
             }
-            // Re-render messages to reflect name change on own messages
+            // Re-render messages to reflect profile/badge change on own messages
             GlobalChat.renderMessagesList(GlobalChat.messages);
         }
-    });
+    }
+
+    window.addEventListener('musifystar:user_profile_updated', handleUserProfileChange);
+    window.addEventListener('musifystar:user_badge_updated', handleUserProfileChange);
+    window.addEventListener('musifystar:user_border_updated', handleUserProfileChange);
 
     // Periodically poll unread count when window is idle (every 60s)
     setInterval(function() {

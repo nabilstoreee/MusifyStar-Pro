@@ -33,6 +33,10 @@ async function initChatTable() {
             ALTER TABLE global_chat_messages ADD COLUMN IF NOT EXISTS border_name VARCHAR(50);
             ALTER TABLE global_chat_messages ADD COLUMN IF NOT EXISTS is_vip BOOLEAN DEFAULT FALSE;
             ALTER TABLE global_chat_messages ADD COLUMN IF NOT EXISTS vip_tier VARCHAR(50);
+            ALTER TABLE global_chat_messages ADD COLUMN IF NOT EXISTS equipped_badge VARCHAR(100);
+            ALTER TABLE global_chat_messages ADD COLUMN IF NOT EXISTS equipped_badge_title VARCHAR(100);
+            ALTER TABLE global_chat_messages ADD COLUMN IF NOT EXISTS equipped_badge_icon VARCHAR(100);
+            ALTER TABLE global_chat_messages ADD COLUMN IF NOT EXISTS equipped_badge_color VARCHAR(100);
             CREATE INDEX IF NOT EXISTS idx_chat_msg_time ON global_chat_messages(created_at DESC);
         `);
     } catch (e) {
@@ -151,7 +155,7 @@ module.exports = async function (req, res) {
             const isMasterAdminReq = adminAuth.isValidToken(adminToken) || adminAuth.isValidToken(rawToken);
 
             const result = await pool.query(`
-                SELECT id, user_id, username, email, message, badge, is_admin, avatar_color, avatar_url, border_id, border_url, border_name, is_vip, vip_tier, created_at 
+                SELECT id, user_id, username, email, message, badge, is_admin, avatar_color, avatar_url, border_id, border_url, border_name, is_vip, vip_tier, equipped_badge, equipped_badge_title, equipped_badge_icon, equipped_badge_color, created_at 
                 FROM global_chat_messages 
                 ORDER BY created_at DESC 
                 LIMIT 60
@@ -181,12 +185,13 @@ module.exports = async function (req, res) {
                                          (String(r.user_id || '') === 'u_1790196636099_622dc736') ||
                                          (String(r.user_id || '') === 'admin_1') ||
                                          (r.username === 'nabil' && (r.email || '').includes('jrnabil570'));
-                const displayUsername = isMsgMasterAdmin ? 'MusifyStar Official' : r.username;
 
                 // Match user from current database state for up-to-date border and avatar
                 const matchedUser = userMapById.get(String(r.user_id || '')) ||
                                     userMapByEmail.get((r.email || '').toLowerCase().trim()) ||
                                     userMapByName.get((r.username || '').toLowerCase().trim()) || null;
+
+                const displayUsername = matchedUser?.username || r.username || (isMsgMasterAdmin ? 'MusifyStar Official' : 'Musisi');
 
                 const userAvatar = matchedUser?.avatar || r.avatar_url || '';
                 const activeBorderId = matchedUser?.border || r.border_id || '';
@@ -198,6 +203,11 @@ module.exports = async function (req, res) {
                 const vipExpiresAt = matchedUser?.vipExpiresAt || null;
                 const isVipActive = isUserVipRaw && (!vipExpiresAt || Date.now() <= vipExpiresAt);
                 const vipTier = isMsgMasterAdmin ? 'permanent' : (isVipActive ? (matchedUser?.vipTier || r.vip_tier || 'permanent') : 'none');
+
+                const equippedBadge = matchedUser ? (matchedUser.equippedBadge !== undefined ? matchedUser.equippedBadge : (r.equipped_badge || '')) : (r.equipped_badge || '');
+                const equippedBadgeTitle = matchedUser ? (matchedUser.equippedBadgeTitle !== undefined ? matchedUser.equippedBadgeTitle : (r.equipped_badge_title || '')) : (r.equipped_badge_title || '');
+                const equippedBadgeIcon = matchedUser ? (matchedUser.equippedBadgeIcon !== undefined ? matchedUser.equippedBadgeIcon : (r.equipped_badge_icon || '')) : (r.equipped_badge_icon || '');
+                const equippedBadgeColor = matchedUser ? (matchedUser.equippedBadgeColor !== undefined ? matchedUser.equippedBadgeColor : (r.equipped_badge_color || '')) : (r.equipped_badge_color || '');
 
                 return {
                     id: String(r.id),
@@ -215,6 +225,10 @@ module.exports = async function (req, res) {
                     isVip: isVipActive,
                     vipTier: vipTier,
                     vipExpiresAt: vipExpiresAt,
+                    equippedBadge: equippedBadge,
+                    equippedBadgeTitle: equippedBadgeTitle,
+                    equippedBadgeIcon: equippedBadgeIcon,
+                    equippedBadgeColor: equippedBadgeColor,
                     createdAt: r.created_at,
                     // Email is ONLY visible to the master admin for moderation; hidden for all other users
                     email: isMasterAdminReq ? r.email : undefined
@@ -298,7 +312,7 @@ module.exports = async function (req, res) {
                         const isFoundAdmin = (foundUser.email || foundUser.rawEmail || '').toLowerCase().trim() === 'jrnabil570@gmail.com' || String(foundUser.id) === 'u_1790196636099_622dc736';
                         currentUser = {
                             id: String(foundUser.id || effectiveUid),
-                            username: isFoundAdmin ? 'MusifyStar Official' : (foundUser.username || effectiveUsername || 'Musisi'),
+                            username: foundUser.username || (isFoundAdmin ? 'MusifyStar Official' : effectiveUsername || 'Musisi'),
                             email: foundUser.email || foundUser.rawEmail || headerEmail || '',
                             rawEmail: foundUser.rawEmail || foundUser.email || headerEmail || '',
                             isAdmin: isFoundAdmin,
@@ -308,7 +322,7 @@ module.exports = async function (req, res) {
                         const isGuestAdmin = (headerEmail === 'jrnabil570@gmail.com' || effectiveUid === 'u_1790196636099_622dc736');
                         currentUser = {
                             id: String(effectiveUid || 'usr_' + Date.now()),
-                            username: isGuestAdmin ? 'MusifyStar Official' : (effectiveUsername || 'Musisi'),
+                            username: effectiveUsername || (isGuestAdmin ? 'MusifyStar Official' : 'Musisi'),
                             email: headerEmail || (isGuestAdmin ? 'jrnabil570@gmail.com' : ''),
                             rawEmail: headerEmail || (isGuestAdmin ? 'jrnabil570@gmail.com' : ''),
                             isAdmin: isGuestAdmin,
@@ -372,10 +386,10 @@ module.exports = async function (req, res) {
             // Master Admin Verification
             const isMasterAdmin = (email === 'jrnabil570@gmail.com' || userId === 'u_1790196636099_622dc736' || userId === 'admin_1');
             const badge = isMasterAdmin ? 'Admin' : 'Member';
-            const displayUsername = isMasterAdmin ? 'MusifyStar Official' : username;
+            const displayUsername = username || (isMasterAdmin ? 'MusifyStar Official' : 'Musisi');
             const avatarColor = getAvatarColor(displayUsername);
 
-            // Resolve user avatar and border frame
+            // Resolve user avatar, border frame & custom rank badge
             let userAvatar = currentUser.avatar || '';
             let activeBorderId = currentUser.border || '';
             let activeBorderUrl = currentUser.borderUrl || '';
@@ -385,10 +399,16 @@ module.exports = async function (req, res) {
             let isVipActive = isUserVipRaw && (!vipExpiresAt || Date.now() <= vipExpiresAt);
             let vipTier = isMasterAdmin ? 'permanent' : (currentUser.vipTier || (isVipActive ? 'permanent' : 'none'));
 
+            let equippedBadge = currentUser.equippedBadge || body.equippedBadge || '';
+            let equippedBadgeTitle = currentUser.equippedBadgeTitle || body.equippedBadgeTitle || '';
+            let equippedBadgeIcon = currentUser.equippedBadgeIcon || body.equippedBadgeIcon || '';
+            let equippedBadgeColor = currentUser.equippedBadgeColor || body.equippedBadgeColor || '';
+
             try {
                 const dbData = await storage.readDataAsync('users.json', { users: [], sessions: {} });
                 const matched = (dbData.users || []).find(u => String(u.id) === userId || (u.email && u.email.toLowerCase() === email));
                 if (matched) {
+                    if (matched.username) displayUsername = matched.username;
                     if (matched.avatar) userAvatar = matched.avatar;
                     if (matched.border) activeBorderId = matched.border;
                     if (matched.borderUrl) activeBorderUrl = matched.borderUrl;
@@ -397,6 +417,10 @@ module.exports = async function (req, res) {
                     if (matched.vipExpiresAt) vipExpiresAt = matched.vipExpiresAt;
                     isVipActive = isUserVipRaw && (!vipExpiresAt || Date.now() <= vipExpiresAt);
                     if (matched.vipTier) vipTier = matched.vipTier;
+                    if (matched.equippedBadge !== undefined) equippedBadge = matched.equippedBadge;
+                    if (matched.equippedBadgeTitle !== undefined) equippedBadgeTitle = matched.equippedBadgeTitle;
+                    if (matched.equippedBadgeIcon !== undefined) equippedBadgeIcon = matched.equippedBadgeIcon;
+                    if (matched.equippedBadgeColor !== undefined) equippedBadgeColor = matched.equippedBadgeColor;
                 }
             } catch (e) {}
 
@@ -405,10 +429,10 @@ module.exports = async function (req, res) {
             // Insert into PRIMARY Neon PostgreSQL database
             const insertResult = await pool.query(
                 `INSERT INTO global_chat_messages 
-                (user_id, username, email, message, badge, is_admin, avatar_color, avatar_url, border_id, border_url, border_name, is_vip, vip_tier, ip_address, created_at) 
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW()) 
-                RETURNING id, user_id, username, message, badge, is_admin, avatar_color, avatar_url, border_id, border_url, border_name, is_vip, vip_tier, created_at`,
-                [userId, displayUsername, email, cleanMessage, badge, isMasterAdmin, avatarColor, userAvatar, borderInfo.borderId, borderInfo.borderUrl, borderInfo.borderName, isVipActive, vipTier, clientIp]
+                (user_id, username, email, message, badge, is_admin, avatar_color, avatar_url, border_id, border_url, border_name, is_vip, vip_tier, equipped_badge, equipped_badge_title, equipped_badge_icon, equipped_badge_color, ip_address, created_at) 
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, NOW()) 
+                RETURNING id, user_id, username, message, badge, is_admin, avatar_color, avatar_url, border_id, border_url, border_name, is_vip, vip_tier, equipped_badge, equipped_badge_title, equipped_badge_icon, equipped_badge_color, created_at`,
+                [userId, displayUsername, email, cleanMessage, badge, isMasterAdmin, avatarColor, userAvatar, borderInfo.borderId, borderInfo.borderUrl, borderInfo.borderName, isVipActive, vipTier, equippedBadge, equippedBadgeTitle, equippedBadgeIcon, equippedBadgeColor, clientIp]
             );
 
             const saved = insertResult.rows[0];
@@ -432,6 +456,10 @@ module.exports = async function (req, res) {
                     isVip: isVipActive,
                     vipTier: vipTier,
                     vipExpiresAt: vipExpiresAt,
+                    equippedBadge: saved.equipped_badge || equippedBadge,
+                    equippedBadgeTitle: saved.equipped_badge_title || equippedBadgeTitle,
+                    equippedBadgeIcon: saved.equipped_badge_icon || equippedBadgeIcon,
+                    equippedBadgeColor: saved.equipped_badge_color || equippedBadgeColor,
                     createdAt: saved.created_at,
                     clientTempId: body.clientTempId || undefined
                 }

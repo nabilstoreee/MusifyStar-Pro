@@ -543,12 +543,18 @@ function buildLeaderboardList(data, tf = 'all', includeHidden = false) {
             lbMap.set(uKey, entry);
         }
 
-        if (u.avatar && !entry.avatar.includes('http')) entry.avatar = u.avatar;
+        if (u.username) entry.username = u.username;
+        if (u.avatar) entry.avatar = u.avatar;
 
         const hasBorder = Boolean(u.border && u.border !== 'none');
         entry.border = hasBorder ? u.border : '';
         entry.borderUrl = hasBorder ? (u.borderUrl || (borderMap[u.border] ? borderMap[u.border].url : '')) : '';
         entry.borderName = hasBorder ? (u.borderName || (borderMap[u.border] ? borderMap[u.border].name : '')) : '';
+
+        entry.equippedBadge = u.equippedBadge !== undefined ? u.equippedBadge : (entry.equippedBadge || '');
+        entry.equippedBadgeTitle = u.equippedBadgeTitle !== undefined ? u.equippedBadgeTitle : (entry.equippedBadgeTitle || '');
+        entry.equippedBadgeIcon = u.equippedBadgeIcon !== undefined ? u.equippedBadgeIcon : (entry.equippedBadgeIcon || '');
+        entry.equippedBadgeColor = u.equippedBadgeColor !== undefined ? u.equippedBadgeColor : (entry.equippedBadgeColor || '');
 
         entry.isVip = isVip;
         entry.isMasterAdmin = isMasterAdmin;

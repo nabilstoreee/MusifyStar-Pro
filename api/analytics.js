@@ -234,6 +234,30 @@ function recordHeartbeat(sessionInfo, userAgent) {
             const uKey = (userInfo.username || userInfo.id || '').toLowerCase().trim();
             if (uKey && uKey !== 'tamu (belum login)') {
                 if (!data.userStats[uKey]) {
+                    // Check registered user baseline so active sessions don't reset scores
+                    let initSec = 7200;
+                    let initPlays = 28;
+                    const isMasterAdmin = (uKey === 'nabil' || userInfo.email === 'jrnabil570@gmail.com');
+                    if (isMasterAdmin) {
+                        initSec = 53400;
+                        initPlays = 196;
+                    } else if (uKey === 'ayaww') {
+                        initSec = 35600;
+                        initPlays = 128;
+                    } else if (uKey === 'nananaaa') {
+                        initSec = 26800;
+                        initPlays = 98;
+                    } else if (uKey === 'yua') {
+                        initSec = 20200;
+                        initPlays = 76;
+                    } else if (uKey === 'kiranakirana') {
+                        initSec = 15400;
+                        initPlays = 58;
+                    } else if (uKey === 'abil') {
+                        initSec = 10800;
+                        initPlays = 42;
+                    }
+
                     data.userStats[uKey] = {
                         id: userInfo.id || '',
                         username: userInfo.username,
@@ -241,10 +265,10 @@ function recordHeartbeat(sessionInfo, userAgent) {
                         border: (userRaw && userRaw.border) || '',
                         borderUrl: (userRaw && userRaw.borderUrl) || '',
                         borderName: (userRaw && userRaw.borderName) || '',
-                        totalSeconds: 0,
-                        weeklySeconds: 0,
-                        monthlySeconds: 0,
-                        totalPlays: 0,
+                        totalSeconds: initSec,
+                        weeklySeconds: Math.round(initSec * 0.35),
+                        monthlySeconds: Math.round(initSec * 0.75),
+                        totalPlays: initPlays,
                         lastPlayed: '',
                         lastSeen: now
                     };
@@ -506,6 +530,10 @@ function buildLeaderboardList(data, tf = 'all', includeHidden = false) {
                 borderName: u.borderName || (borderMap[u.border] ? borderMap[u.border].name : ''),
                 isVip: isVip,
                 vipTier: u.vipTier || '',
+                equippedBadge: u.equippedBadge || '',
+                equippedBadgeTitle: u.equippedBadgeTitle || '',
+                equippedBadgeIcon: u.equippedBadgeIcon || '',
+                equippedBadgeColor: u.equippedBadgeColor || '',
                 listeningSeconds: baselineSec,
                 totalPlays: baselinePlays,
                 lastSeen: u.lastLogin || Date.now(),
@@ -550,11 +578,23 @@ function buildLeaderboardList(data, tf = 'all', includeHidden = false) {
         .sort((a, b) => (b.listeningSeconds || 0) - (a.listeningSeconds || 0))
         .map((item, idx) => {
             const sec = item.listeningSeconds || 0;
-            const hours = Math.floor(sec / 3600);
-            const mins = Math.floor((sec % 3600) / 60);
+            const days = Math.floor(sec / 86400);
+            const remSec = sec % 86400;
+            const hours = Math.floor(remSec / 3600);
+            const mins = Math.floor((remSec % 3600) / 60);
+
             let formatted = '';
-            if (hours > 0) formatted = `${hours} Jam ${mins} Menit`;
-            else formatted = `${mins} Menit`;
+            if (days > 0) {
+                formatted = `${days} Hari`;
+            } else if (hours > 0) {
+                if (mins > 0) {
+                    formatted = `${hours} Jam ${mins} Menit`;
+                } else {
+                    formatted = `${hours} Jam`;
+                }
+            } else {
+                formatted = `${mins} Menit`;
+            }
 
             return {
                 rank: idx + 1,
@@ -567,6 +607,10 @@ function buildLeaderboardList(data, tf = 'all', includeHidden = false) {
                 isVip: !!item.isVip,
                 isMasterAdmin: !!item.isMasterAdmin,
                 vipTier: item.vipTier || '',
+                equippedBadge: item.equippedBadge || '',
+                equippedBadgeTitle: item.equippedBadgeTitle || '',
+                equippedBadgeIcon: item.equippedBadgeIcon || '',
+                equippedBadgeColor: item.equippedBadgeColor || '',
                 isOnline: !!item.isOnline,
                 currentTrack: item.currentTrack || '',
                 listeningSeconds: sec,
